@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/img">
+        <file alias="audio">images/audio.ico</file>
+        <file alias="music">images/music..png</file>
+        <file alias="nuta">images/nuta.png</file>
+        <file alias="speaker">images/speaker.png</file>
+    </qresource>
+</RCC>
