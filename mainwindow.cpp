@@ -24,7 +24,9 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 
-Window::Window():
+Window::Window(): QDialog(),
+    player_{new QMediaPlayer},
+    audio_output_{new QAudioOutput},
     tray_{new QSystemTrayIcon(this)},
     tray_menu_{new QMenu},
     app_icon_{":/img/speaker"},
@@ -32,8 +34,15 @@ Window::Window():
     maximize_action_{new QAction("Maximize")},
     restore_action_{new QAction{"Restore"}},
     quit_action_{new QAction("Quit")},
-    msg_action_{new QAction("Message")}
+    msg_action_{new QAction("Message")},
+    play_action_{new QAction("Play")},
+    pause_action_{new QAction("Pause")}
 {
+    player_->setAudioOutput(audio_output_);
+    connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
+        fmt::print(stderr, "{}\n", pos);
+    });
+
     createIconGroupBox();
     createMessageGroupBox();
 
@@ -44,14 +53,23 @@ Window::Window():
     connect(maximize_action_, &QAction::triggered, this, &QWidget::showMaximized);
     connect(restore_action_ , &QAction::triggered, this, &QWidget::showNormal);
     connect(quit_action_    , &QAction::triggered, qApp, &QCoreApplication::quit);
-    connect(msg_action_     , &QAction::triggered, this, [this] (auto _) {
-        showMessage();
+    connect(msg_action_     , &QAction::triggered, this, &Window::showMessage);
+
+    connect(play_action_    , &QAction::triggered, [this] () {
+        player_->play();
     });
+    connect(pause_action_    , &QAction::triggered, [this] () {
+        player_->pause();
+    });
+
 
     // Create menu
     tray_menu_->addAction(minimize_action_);
     tray_menu_->addAction(maximize_action_);
     tray_menu_->addAction(restore_action_);
+    tray_menu_->addSeparator();
+    tray_menu_->addAction(play_action_);
+    tray_menu_->addAction(pause_action_);
     tray_menu_->addAction(msg_action_);
     tray_menu_->addSeparator();
     tray_menu_->addAction(quit_action_);
@@ -127,7 +145,7 @@ void Window::showMessage() {
     // QSystemTrayIcon::Warning
     // QSystemTrayIcon::Critical
 
-    tray_->showMessage("Tytul", "Body", QSystemTrayIcon::Information, 15 * 1000);
+    tray_->showMessage("Tytul", player_->source().path(), style()->standardIcon(QStyle::SP_MessageBoxInformation), 15 * 1000);
 
     // showIconCheckBox->setChecked(true);
     // int selectedIcon = typeComboBox->itemData(typeComboBox->currentIndex()).toInt();
@@ -140,16 +158,13 @@ void Window::showMessage() {
     //     tray_->showMessage(titleEdit->text(), bodyEdit->toPlainText(), msgIcon, durationSpinBox->value() * 1000);
     // }
 }
-//! [5]
 
-//! [6]
 void Window::messageClicked()
 {
     QMessageBox::information(nullptr, tr("Systray"),
                              tr("Sorry, I already gave what help I could.\n"
                                 "Maybe you should try asking a human?"));
 }
-//! [6]
 
 void Window::createIconGroupBox() {
     iconGroupBox = new QGroupBox(tr("Tray Icon"));
@@ -263,11 +278,13 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 MainWindow::~MainWindow() {}
+*/
 
-void MainWindow::showEvent(QShowEvent* e) {
-    // QString path = "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a";
-    // player_->setSource(QUrl::fromLocalFile(path));
-    // audio_output_->setVolume(30);
+void Window::showEvent(QShowEvent* e) {
+    fmt::print(stderr, "Show event\n");
+    QString path = "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a";
+    player_->setSource(QUrl::fromLocalFile(path));
+    audio_output_->setVolume(30);
     // player_->play();
 }
-*/
+

@@ -24,6 +24,8 @@ class QAudioOutput;
 
 class Window : public QDialog {
     Q_OBJECT
+    QMediaPlayer* const player_;
+    QAudioOutput* const audio_output_;
     QSystemTrayIcon* const tray_;
     QMenu* const tray_menu_;
     QIcon const app_icon_;
@@ -32,11 +34,15 @@ class Window : public QDialog {
     QAction* const restore_action_;
     QAction* const quit_action_;
     QAction* const msg_action_;
+    QAction* const play_action_;
+    QAction* const pause_action_;
+    // QAction* const stop_action_;
 public:
     Window();
     void setVisible(bool visible) override;
 protected:
     void closeEvent(QCloseEvent*) override;
+    void showEvent(QShowEvent*) override;
 private slots:
     // void setIcon(int index);
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
@@ -47,6 +53,7 @@ private:
     void createIconGroupBox();
     void createMessageGroupBox();
     void createActions();
+
 
     QGroupBox *iconGroupBox;
     QLabel *iconLabel;
