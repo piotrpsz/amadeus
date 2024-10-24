@@ -25,6 +25,9 @@
 #include <QVBoxLayout>
 #include <QMessageBox>
 
+// Kraken token.
+// eJyrVkpMTk4tLg7Jz07NU7JSMrIwTjUyNUsxMEhNTjUzN0k0TzNJSku2MDdOS7M0N0xKTktMTEo2T1OqBQAZ2hIa
+
 Window::Window(): QDialog(),
     player_{new QMediaPlayer},
     audio_output_{new QAudioOutput},
