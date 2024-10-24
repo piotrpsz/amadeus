@@ -37,17 +37,17 @@ class Window : public QDialog {
     QAction* const play_action_;
     QAction* const pause_action_;
     // QAction* const stop_action_;
+    bool first_time_{true};
 public:
     Window();
     void setVisible(bool visible) override;
 protected:
     void closeEvent(QCloseEvent*) override;
     void showEvent(QShowEvent*) override;
-private slots:
+private:
     // void setIcon(int index);
-    void iconActivated(QSystemTrayIcon::ActivationReason reason);
+    // void iconActivated(QSystemTrayIcon::ActivationReason reason);
     void show_message();
-    void messageClicked();
 
 private:
     // void createIconGroupBox();

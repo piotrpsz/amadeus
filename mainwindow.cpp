@@ -80,13 +80,10 @@ Window::Window(): QDialog(),
     tray_->setToolTip("Amadeus");
     setWindowIcon(app_icon_);
 
-
-
-    // connect(showMessageButton, &QAbstractButton::clicked, this, &Window::show_message);
-    // connect(showIconCheckBox, &QAbstractButton::toggled, tray_, &QSystemTrayIcon::setVisible);
-    // connect(iconComboBox, &QComboBox::currentIndexChanged, this, &Window::setIcon);
-    connect(tray_, &QSystemTrayIcon::messageClicked, this, &Window::messageClicked);
-    connect(tray_, &QSystemTrayIcon::activated, this, &Window::iconActivated);
+    // connect(tray_, &QSystemTrayIcon::messageClicked, this, &Window::messageClicked);
+    connect(tray_, &QSystemTrayIcon::activated, this, [this] (auto _) {
+        isVisible() ? hide() : show();
+    });
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
     // mainLayout->addWidget(iconGroupBox);
@@ -108,64 +105,52 @@ void Window::setVisible(bool const visible) {
     QDialog::setVisible(visible);
 }
 
-
 /// We ignore close event.
-/// User should close app
+/// User should explicity close app from tray-menu.
 void Window::closeEvent(QCloseEvent* const event) {
     if (!event->spontaneous() || !isVisible())
         return;
 
     if (tray_->isVisible()) {
-        QMessageBox::information(this, "Amadeus",
+        if (first_time_) {
+            first_time_ = false;
+            QMessageBox::information(this, shared::PROGRAM,
                                 "The program will keep running in the "
                                 "system tray. To terminate the program, "
                                 "choose <b>Quit</b> in the context menu "
                                 "of the system tray entry.");
+        }
         hide();
         event->ignore();
+
     }
 }
 
-void Window::iconActivated(QSystemTrayIcon::ActivationReason reason) {
-    switch (reason) {
-    case QSystemTrayIcon::Trigger:
-    case QSystemTrayIcon::DoubleClick:
-        // iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
-        break;
-    case QSystemTrayIcon::MiddleClick:
-        show_message();
-        break;
-    default:
+// void Window::iconActivated(QSystemTrayIcon::ActivationReason reason) {
+//     switch (reason) {
+//     case QSystemTrayIcon::Trigger:
+//     case QSystemTrayIcon::DoubleClick:
+//         // iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
+//         break;
+//     case QSystemTrayIcon::MiddleClick:
+//         show_message();
+//         break;
+//     default:
 
-        ;
-    }
-}
+//         ;
+//     }
+// }
 
 void Window::show_message() {
-    // QSystemTrayIcon::Information
-    // QSystemTrayIcon::Warning
-    // QSystemTrayIcon::Critical
-
     tray_->showMessage("Tytul", player_->source().path(), app_icon_, 15 * 1000);
-
-    // showIconCheckBox->setChecked(true);
-    // int selectedIcon = typeComboBox->itemData(typeComboBox->currentIndex()).toInt();
-    // QSystemTrayIcon::MessageIcon msgIcon = QSystemTrayIcon::MessageIcon(selectedIcon);
-
-    // if (selectedIcon == -1) { // custom icon
-    //     QIcon icon(iconComboBox->itemIcon(iconComboBox->currentIndex()));
-    //     tray_->showMessage(titleEdit->text(), bodyEdit->toPlainText(), icon, durationSpinBox->value() * 1000);
-    // } else {
-    //     tray_->showMessage(titleEdit->text(), bodyEdit->toPlainText(), msgIcon, durationSpinBox->value() * 1000);
-    // }
 }
 
-void Window::messageClicked()
-{
-    QMessageBox::information(nullptr, tr("Systray"),
-                             tr("Sorry, I already gave what help I could.\n"
-                                "Maybe you should try asking a human?"));
-}
+// void Window::messageClicked()
+// {
+//     QMessageBox::information(nullptr, tr("Systray"),
+//                              tr("Sorry, I already gave what help I could.\n"
+//                                 "Maybe you should try asking a human?"));
+// }
 
 // void Window::createIconGroupBox() {
 //     iconGroupBox = new QGroupBox(tr("Tray Icon"));
