@@ -46,31 +46,31 @@ protected:
 private slots:
     // void setIcon(int index);
     void iconActivated(QSystemTrayIcon::ActivationReason reason);
-    void showMessage();
+    void show_message();
     void messageClicked();
 
 private:
-    void createIconGroupBox();
-    void createMessageGroupBox();
-    void createActions();
+    // void createIconGroupBox();
+    // void createMessageGroupBox();
+    // void createActions();
 
 
-    QGroupBox *iconGroupBox;
-    QLabel *iconLabel;
-    QComboBox *iconComboBox;
-    QCheckBox *showIconCheckBox;
+    // QGroupBox *iconGroupBox;
+    // QLabel *iconLabel;
+    // QComboBox *iconComboBox;
+    // QCheckBox *showIconCheckBox;
 
-    QGroupBox *messageGroupBox;
-    QLabel *typeLabel;
-    QLabel *durationLabel;
-    QLabel *durationWarningLabel;
-    QLabel *titleLabel;
-    QLabel *bodyLabel;
-    QComboBox *typeComboBox;
-    QSpinBox *durationSpinBox;
-    QLineEdit *titleEdit;
-    QTextEdit *bodyEdit;
-    QPushButton *showMessageButton;
+    // QGroupBox *messageGroupBox;
+    // QLabel *typeLabel;
+    // QLabel *durationLabel;
+    // QLabel *durationWarningLabel;
+    // QLabel *titleLabel;
+    // QLabel *bodyLabel;
+    // QComboBox *typeComboBox;
+    // QSpinBox *durationSpinBox;
+    // QLineEdit *titleEdit;
+    // QTextEdit *bodyEdit;
+    // QPushButton *showMessageButton;
 
 
 

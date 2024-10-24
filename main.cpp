@@ -1,12 +1,21 @@
 
 #include <QApplication>
+#include <QCoreApplication>
 #include <QLocale>
 #include <QTranslator>
 #include "mainwindow.h"
+#include "shared.h"
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char *argv[]) {
+    QCoreApplication::setApplicationName(shared::PROGRAM);
+    QCoreApplication::setApplicationVersion(shared::VERSION);
+    QCoreApplication::setOrganizationName(shared::ORGANIZATION);
+    QCoreApplication::setOrganizationDomain(shared::DOMAIN);
+
     QApplication a(argc, argv);
+
+
+
     // a.setApplicationName("Amadeus");
 
     // QTranslator translator;

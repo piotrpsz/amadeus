@@ -28,6 +28,9 @@ qt_add_executable(amadeus
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         resources.qrc
+        shared.h shared.cpp
+        workspace.h workspace.cpp
+        control_bar.h control_bar.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET amadeus APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

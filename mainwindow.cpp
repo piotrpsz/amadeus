@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "shared.h"
 #include <QUrl>
 #include <QIcon>
 #include <QShowEvent>
@@ -38,27 +39,26 @@ Window::Window(): QDialog(),
     play_action_{new QAction("Play")},
     pause_action_{new QAction("Pause")}
 {
+    setWindowTitle(shared::app_complete_name());
+
     player_->setAudioOutput(audio_output_);
+
     connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
-        fmt::print(stderr, "{}\n", pos);
+        //fmt::print(stderr, "{}\n", pos);
     });
 
-    createIconGroupBox();
-    createMessageGroupBox();
-
-    iconLabel->setMinimumWidth(durationLabel->sizeHint().width());
-
-    // createActions();
     connect(minimize_action_, &QAction::triggered, this, &QWidget::hide);
     connect(maximize_action_, &QAction::triggered, this, &QWidget::showMaximized);
     connect(restore_action_ , &QAction::triggered, this, &QWidget::showNormal);
     connect(quit_action_    , &QAction::triggered, qApp, &QCoreApplication::quit);
-    connect(msg_action_     , &QAction::triggered, this, &Window::showMessage);
 
-    connect(play_action_    , &QAction::triggered, [this] () {
+    connect(msg_action_     , &QAction::triggered, this, [this] (auto _) {
+        show_message();
+    });
+    connect(play_action_    , &QAction::triggered, player_, [this] (auto _) {
         player_->play();
     });
-    connect(pause_action_    , &QAction::triggered, [this] () {
+    connect(pause_action_    , &QAction::triggered, this, [this] (auto _) {
         player_->pause();
     });
 
@@ -82,22 +82,23 @@ Window::Window(): QDialog(),
 
 
 
-    connect(showMessageButton, &QAbstractButton::clicked, this, &Window::showMessage);
-    connect(showIconCheckBox, &QAbstractButton::toggled, tray_, &QSystemTrayIcon::setVisible);
+    // connect(showMessageButton, &QAbstractButton::clicked, this, &Window::show_message);
+    // connect(showIconCheckBox, &QAbstractButton::toggled, tray_, &QSystemTrayIcon::setVisible);
     // connect(iconComboBox, &QComboBox::currentIndexChanged, this, &Window::setIcon);
     connect(tray_, &QSystemTrayIcon::messageClicked, this, &Window::messageClicked);
     connect(tray_, &QSystemTrayIcon::activated, this, &Window::iconActivated);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addWidget(iconGroupBox);
-    mainLayout->addWidget(messageGroupBox);
+    // mainLayout->addWidget(iconGroupBox);
+    // mainLayout->addWidget(messageGroupBox);
     setLayout(mainLayout);
 
-    iconComboBox->setCurrentIndex(1);
+    // iconComboBox->setCurrentIndex(1);
     tray_->show();
 
-    setWindowTitle(tr("Amadeus"));
-    resize(400, 300);
+
+    // resize(400, 300);
+    shared::resize(this, 75, 75);
 }
 
 void Window::setVisible(bool const visible) {
@@ -129,10 +130,10 @@ void Window::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     switch (reason) {
     case QSystemTrayIcon::Trigger:
     case QSystemTrayIcon::DoubleClick:
-        iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
+        // iconComboBox->setCurrentIndex((iconComboBox->currentIndex() + 1) % iconComboBox->count());
         break;
     case QSystemTrayIcon::MiddleClick:
-        showMessage();
+        show_message();
         break;
     default:
 
@@ -140,12 +141,12 @@ void Window::iconActivated(QSystemTrayIcon::ActivationReason reason) {
     }
 }
 
-void Window::showMessage() {
+void Window::show_message() {
     // QSystemTrayIcon::Information
     // QSystemTrayIcon::Warning
     // QSystemTrayIcon::Critical
 
-    tray_->showMessage("Tytul", player_->source().path(), style()->standardIcon(QStyle::SP_MessageBoxInformation), 15 * 1000);
+    tray_->showMessage("Tytul", player_->source().path(), app_icon_, 15 * 1000);
 
     // showIconCheckBox->setChecked(true);
     // int selectedIcon = typeComboBox->itemData(typeComboBox->currentIndex()).toInt();
@@ -166,97 +167,79 @@ void Window::messageClicked()
                                 "Maybe you should try asking a human?"));
 }
 
-void Window::createIconGroupBox() {
-    iconGroupBox = new QGroupBox(tr("Tray Icon"));
+// void Window::createIconGroupBox() {
+//     iconGroupBox = new QGroupBox(tr("Tray Icon"));
 
-    iconLabel = new QLabel("Icon:");
+//     iconLabel = new QLabel("Icon:");
 
-    iconComboBox = new QComboBox;
-    iconComboBox->addItem(QIcon(":/images/bad.png"), tr("Bad"));
-    iconComboBox->addItem(QIcon(":/images/heart.png"), tr("Heart"));
-    iconComboBox->addItem(QIcon(":/images/trash.png"), tr("Trash"));
+//     iconComboBox = new QComboBox;
+//     iconComboBox->addItem(QIcon(":/images/bad.png"), tr("Bad"));
+//     iconComboBox->addItem(QIcon(":/images/heart.png"), tr("Heart"));
+//     iconComboBox->addItem(QIcon(":/images/trash.png"), tr("Trash"));
 
-    showIconCheckBox = new QCheckBox(tr("Show icon"));
-    showIconCheckBox->setChecked(true);
+//     showIconCheckBox = new QCheckBox(tr("Show icon"));
+//     showIconCheckBox->setChecked(true);
 
-    QHBoxLayout *iconLayout = new QHBoxLayout;
-    iconLayout->addWidget(iconLabel);
-    iconLayout->addWidget(iconComboBox);
-    iconLayout->addStretch();
-    iconLayout->addWidget(showIconCheckBox);
-    iconGroupBox->setLayout(iconLayout);
-}
+//     QHBoxLayout *iconLayout = new QHBoxLayout;
+//     iconLayout->addWidget(iconLabel);
+//     iconLayout->addWidget(iconComboBox);
+//     iconLayout->addStretch();
+//     iconLayout->addWidget(showIconCheckBox);
+//     iconGroupBox->setLayout(iconLayout);
+// }
 
-void Window::createMessageGroupBox() {
-    messageGroupBox = new QGroupBox(tr("Balloon Message"));
+// void Window::createMessageGroupBox() {
+    // messageGroupBox = new QGroupBox(tr("Balloon Message"));
 
-    typeLabel = new QLabel(tr("Type:"));
+    // typeLabel = new QLabel(tr("Type:"));
 
-    typeComboBox = new QComboBox;
+    // typeComboBox = new QComboBox;
 
-    typeComboBox->addItem(tr("None"), QSystemTrayIcon::NoIcon);
-    typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("Information"), QSystemTrayIcon::Information);
-    typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxWarning), tr("Warning"), QSystemTrayIcon::Warning);
-    typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxCritical), tr("Critical"), QSystemTrayIcon::Critical);
-    typeComboBox->addItem(QIcon(), tr("Custom icon"), -1);
-    typeComboBox->setCurrentIndex(1);
+    // typeComboBox->addItem(tr("None"), QSystemTrayIcon::NoIcon);
+    // typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxInformation), tr("Information"), QSystemTrayIcon::Information);
+    // typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxWarning), tr("Warning"), QSystemTrayIcon::Warning);
+    // typeComboBox->addItem(style()->standardIcon(QStyle::SP_MessageBoxCritical), tr("Critical"), QSystemTrayIcon::Critical);
+    // typeComboBox->addItem(QIcon(), tr("Custom icon"), -1);
+    // typeComboBox->setCurrentIndex(1);
 
-    durationLabel = new QLabel(tr("Duration:"));
+    // durationLabel = new QLabel(tr("Duration:"));
 
-    durationSpinBox = new QSpinBox;
-    durationSpinBox->setRange(5, 60);
-    durationSpinBox->setSuffix(" s");
-    durationSpinBox->setValue(15);
+    // durationSpinBox = new QSpinBox;
+    // durationSpinBox->setRange(5, 60);
+    // durationSpinBox->setSuffix(" s");
+    // durationSpinBox->setValue(15);
 
-    durationWarningLabel = new QLabel(tr("(some systems might ignore this hint)"));
-    durationWarningLabel->setIndent(10);
+    // durationWarningLabel = new QLabel(tr("(some systems might ignore this hint)"));
+    // durationWarningLabel->setIndent(10);
 
-    titleLabel = new QLabel(tr("Title:"));
+    // titleLabel = new QLabel(tr("Title:"));
 
-    titleEdit = new QLineEdit(tr("Cannot connect to network"));
+    // titleEdit = new QLineEdit(tr("Cannot connect to network"));
 
-    bodyLabel = new QLabel(tr("Body:"));
+    // bodyLabel = new QLabel(tr("Body:"));
 
-    bodyEdit = new QTextEdit;
-    bodyEdit->setPlainText(tr("Don't believe me. Honestly, I don't have a "
-                              "clue.\nClick this balloon for details."));
+    // bodyEdit = new QTextEdit;
+    // bodyEdit->setPlainText(tr("Don't believe me. Honestly, I don't have a "
+    //                           "clue.\nClick this balloon for details."));
 
-    showMessageButton = new QPushButton(tr("Show Message"));
-    showMessageButton->setDefault(true);
+    // showMessageButton = new QPushButton(tr("Show Message"));
+    // showMessageButton->setDefault(true);
 
-    QGridLayout *messageLayout = new QGridLayout;
-    messageLayout->addWidget(typeLabel, 0, 0);
-    messageLayout->addWidget(typeComboBox, 0, 1, 1, 2);
-    messageLayout->addWidget(durationLabel, 1, 0);
-    messageLayout->addWidget(durationSpinBox, 1, 1);
-    messageLayout->addWidget(durationWarningLabel, 1, 2, 1, 3);
-    messageLayout->addWidget(titleLabel, 2, 0);
-    messageLayout->addWidget(titleEdit, 2, 1, 1, 4);
-    messageLayout->addWidget(bodyLabel, 3, 0);
-    messageLayout->addWidget(bodyEdit, 3, 1, 2, 4);
-    messageLayout->addWidget(showMessageButton, 5, 4);
-    messageLayout->setColumnStretch(3, 1);
-    messageLayout->setRowStretch(4, 1);
-    messageGroupBox->setLayout(messageLayout);
-}
-
-void Window::createActions() {
-    // minimizeAction = new QAction(tr("Minimize"), this);
-    // connect(minimizeAction, &QAction::triggered, this, &QWidget::hide);
-    // // connect(minimizeAction, &QAction::triggered, this, [this] (auto _) {
-    // //     QWidget::hide();
-    // // });
-
-    // maximizeAction = new QAction(tr("Ma&ximize"), this);
-    // connect(maximizeAction, &QAction::triggered, this, &QWidget::showMaximized);
-
-    // restoreAction = new QAction(tr("&Restore"), this);
-    // connect(restoreAction, &QAction::triggered, this, &QWidget::showNormal);
-
-    // quitAction = new QAction(tr("&Quit"), this);
-    // connect(quitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
-}
-
+    // QGridLayout *messageLayout = new QGridLayout;
+    // messageLayout->addWidget(typeLabel, 0, 0);
+    // messageLayout->addWidget(typeComboBox, 0, 1, 1, 2);
+    // messageLayout->addWidget(durationLabel, 1, 0);
+    // messageLayout->addWidget(durationSpinBox, 1, 1);
+    // messageLayout->addWidget(durationWarningLabel, 1, 2, 1, 3);
+    // messageLayout->addWidget(titleLabel, 2, 0);
+    // messageLayout->addWidget(titleEdit, 2, 1, 1, 4);
+    // messageLayout->addWidget(bodyLabel, 3, 0);
+    // messageLayout->addWidget(bodyEdit, 3, 1, 2, 4);
+    // messageLayout->addWidget(showMessageButton, 5, 4);
+    // messageLayout->setColumnStretch(3, 1);
+    // messageLayout->setRowStretch(4, 1);
+    // messageGroupBox->setLayout(messageLayout);
+// }
 
 /*
 MainWindow::MainWindow(QWidget *parent)
@@ -281,10 +264,7 @@ MainWindow::~MainWindow() {}
 */
 
 void Window::showEvent(QShowEvent* e) {
-    fmt::print(stderr, "Show event\n");
     QString path = "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a";
     player_->setSource(QUrl::fromLocalFile(path));
     audio_output_->setVolume(30);
-    // player_->play();
 }
-
