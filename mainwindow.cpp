@@ -13,7 +13,6 @@
 #include <QSystemTrayIcon>
 #include <fmt/core.h>
 
-
 // Kraken token.
 // eJyrVkpMTk4tLg7Jz07NU7JSMrIwTjUyNUsxMEhNTjUzN0k0TzNJSku2MDdOS7M0N0xKTktMTEo2T1OqBQAZ2hIa
 

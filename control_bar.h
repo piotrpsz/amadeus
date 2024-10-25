@@ -45,3 +45,4 @@ public:
 private:
     void set_song(QString const& path) noexcept;
 };
+
