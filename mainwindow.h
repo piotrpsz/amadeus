@@ -20,6 +20,8 @@ class QSpinBox;
 class QTextEdit;
 class QMediaPlayer;
 class QAudioOutput;
+class ControlBar;
+class Workspace;
 
 
 class Window : public QDialog {
@@ -36,6 +38,10 @@ class Window : public QDialog {
     QAction* const msg_action_;
     QAction* const play_action_;
     QAction* const pause_action_;
+
+    ControlBar* const controlbar_;
+    Workspace* const workspace_;
+
     // QAction* const stop_action_;
     bool first_time_{true};
 public:

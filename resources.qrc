@@ -2,5 +2,10 @@
     <qresource prefix="/img">
         <file alias="audio">images/audio.ico</file>
         <file alias="speaker">images/speaker.png</file>
+        <file alias="pause">images/pause.svg</file>
+        <file alias="skip-backward">images/skip-backward.svg</file>
+        <file alias="skip-forward">images/skip-forward.svg</file>
+        <file alias="start">images/start.svg</file>
+        <file alias="stop">images/stop.svg</file>
     </qresource>
 </RCC>

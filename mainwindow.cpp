@@ -1,4 +1,6 @@
 #include "mainwindow.h"
+#include "control_bar.h"
+#include "workspace.h"
 #include "shared.h"
 #include <QUrl>
 #include <QIcon>
@@ -29,6 +31,8 @@
 // eJyrVkpMTk4tLg7Jz07NU7JSMrIwTjUyNUsxMEhNTjUzN0k0TzNJSku2MDdOS7M0N0xKTktMTEo2T1OqBQAZ2hIa
 
 Window::Window(): QDialog(),
+    controlbar_{new ControlBar},
+    workspace_{new Workspace},
     player_{new QMediaPlayer},
     audio_output_{new QAudioOutput},
     tray_{new QSystemTrayIcon(this)},
@@ -88,10 +92,10 @@ Window::Window(): QDialog(),
         isVisible() ? hide() : show();
     });
 
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    // mainLayout->addWidget(iconGroupBox);
-    // mainLayout->addWidget(messageGroupBox);
-    setLayout(mainLayout);
+    QVBoxLayout *main_layout = new QVBoxLayout;
+    main_layout->addWidget(controlbar_);
+    main_layout->addWidget(workspace_);
+    setLayout(main_layout);
 
     // iconComboBox->setCurrentIndex(1);
     tray_->show();
