@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 25.10.2024.
 // piotr@beesoft.pl
 #pragma once
 
@@ -32,6 +32,7 @@
 -------------------------------------------------------------------*/
 class QTimer;
 class QEvent;
+class QShowEvent;
 class QMouseEvent;
 class QTreeWidgetItem;
 

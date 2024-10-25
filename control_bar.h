@@ -9,6 +9,7 @@
 -------------------------------------------------------------------*/
 class QLabel;
 class QSlider;
+class QEvent;
 class QPushButton;
 class QMediaPlayer;
 class QAudioOutput;
@@ -41,8 +42,9 @@ class ControlBar : public QWidget {
     QString song_path_{};
 public:
     explicit ControlBar(QWidget *parent = nullptr);
-
+    ~ControlBar();
 private:
     void set_song(QString const& path) noexcept;
+    void customEvent(QEvent*) override;
 };
 

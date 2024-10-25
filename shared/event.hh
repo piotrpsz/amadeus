@@ -57,6 +57,6 @@ namespace event {
         PlaybackPoition,
 
         DirSelected,
-        FileSeleced,
+        SongSelected,
     };
 }

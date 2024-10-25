@@ -2,10 +2,13 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include "control_bar.h"
+#include "shared/event.hh"
+#include "shared/event_controller.hh"
 #include <QUrl>
 #include <QDir>
 #include <QIcon>
 #include <QLabel>
+#include <QEvent>
 #include <QSlider>
 #include <QStyle>
 #include <QFileInfo>
@@ -136,7 +139,21 @@ ControlBar::ControlBar(QWidget *parent) :
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
 
-    set_song("/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a");
+    EventController::instance().append(this, event::SongSelected);
+}
+
+ControlBar::~ControlBar() {
+    EventController::instance().remove(this);
+}
+
+void ControlBar::customEvent(QEvent* const event) {
+    auto const e = dynamic_cast<Event*>(event);
+    switch (int(e->type())) {
+    case event::SongSelected:
+        if (auto const data = e->data(); !data.empty())
+            set_song(data[0].toString());
+        break;
+    }
 }
 
 void ControlBar::set_song(QString const& path) noexcept {

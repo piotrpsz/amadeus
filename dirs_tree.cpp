@@ -20,7 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 25.10.2024.
 // piotr@beesoft.pl
 
 /*------- include files:
@@ -49,8 +49,8 @@ DirsTree::DirsTree(QWidget* const parent) :
     timer_->setSingleShot(true);
     connect(timer_, &QTimer::timeout, this, [this]() {
         if (auto item = currentItem(); item) {
-            auto const path{item->data(0, PATH).toString()};
-            EventController::instance().send(event::DirSelected, path);
+            auto path{item->data(0, PATH).toString()};
+            EventController::instance().send(event::DirSelected, std::move(path));
         }
     });
 
@@ -73,6 +73,8 @@ DirsTree::DirsTree(QWidget* const parent) :
     setCurrentItem(root_);
 }
 
+
+
 void DirsTree::update_content(QString const& path) {
     clear();
     root_ = new QTreeWidgetItem(this);
@@ -87,8 +89,6 @@ void DirsTree::update_content(QString const& path) {
 
 void DirsTree::add_items_for(QTreeWidgetItem* const parent) {
     auto parent_path = parent->data(0, PATH).toString();
-    // fmt::print(stderr, "parent path: {}\n", parent_path.toStdString());
-
     QDir const dir{parent_path};
     auto const content = dir.entryInfoList();
 
@@ -99,9 +99,6 @@ void DirsTree::add_items_for(QTreeWidgetItem* const parent) {
             auto const fname = fi.fileName();
             if (fname[0] !='.') {
                 auto const item = new QTreeWidgetItem(parent);
-                // fmt::print(stderr, "{}\n", fi.fileName().toStdString());
-                // fmt::print(stderr, "{}\n", fi.filePath().toStdString());
-
                 item->setText(0, fname);
                 item->setData(0, PATH, fi.filePath());
                 item->setData(0, PID, pid);
