@@ -1,10 +1,16 @@
 #pragma once
 
+/*------- include files:
+-------------------------------------------------------------------*/
 #include <QWidget>
 #include <QIcon>
 
+/*------- forward eclarations:
+-------------------------------------------------------------------*/
+class QLabel;
 class QSlider;
 class QPushButton;
+
 
 class ControlBar : public QWidget {
     Q_OBJECT
@@ -17,6 +23,10 @@ class ControlBar : public QWidget {
     QIcon pause_icon_;
     QPushButton* const play_pause_btn_;
     QSlider* const sound_slide_;
+    QLabel* const performer_;
+    QLabel* const album_;
+    QLabel* const title_;
+
     bool played_{};
 public:
     explicit ControlBar(QWidget *parent = nullptr);
