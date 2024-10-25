@@ -1,12 +1,17 @@
 #include "control_bar.h"
+#include <QDir>
 #include <QIcon>
 #include <QLabel>
 #include <QSlider>
 #include <QStyle>
+#include <QFileInfo>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <span>
+#include <fmt/core.h>
 
 // "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a"
+// QIcon::fromTheme("folder-new")
 
 ControlBar::ControlBar(QWidget *parent) :
     QWidget{parent},
@@ -47,25 +52,28 @@ ControlBar::ControlBar(QWidget *parent) :
     skip_forward_btn->setToolTip("play next");
     skip_forward_btn->setToolTipDuration(DEFAULT_TIP_DURATION);
 
-
+    // Sound slider settings.
     sound_slide_->setMinimum(0);
     sound_slide_->setMaximum(100);
     sound_slide_->setToolTip("volume level");
     sound_slide_->setToolTipDuration(DEFAULT_TIP_DURATION);
 
+    // Lyout with buttons to manage playback.
     auto const play_layout = new QHBoxLayout;
     play_layout->addWidget(skip_backward_btn);
     play_layout->addWidget(play_pause_btn_);
     play_layout->addWidget(skip_forward_btn);
 
+    // Layout with information about the song.
     auto const info_layout = new QHBoxLayout;
-    info_layout->addWidget(new QLabel("Performer:"));
+    // info_layout->addWidget(new QLabel("Performer:"));
     info_layout->addWidget(performer_);
-    info_layout->addWidget(new QLabel("Album:"));
+    // info_layout->addWidget(new QLabel("Album:"));
     info_layout->addWidget(album_);
-    info_layout->addWidget(new QLabel("Title:"));
+    // info_layout->addWidget(new QLabel("Title:"));
     info_layout->addWidget(title_);
 
+    // The Layout That Rules Them All.
     auto const layout = new QHBoxLayout;
     layout->addLayout(info_layout);
     layout->addStretch();
@@ -74,4 +82,33 @@ ControlBar::ControlBar(QWidget *parent) :
     layout->addSpacing(10);
     layout->addLayout(play_layout);
     setLayout(layout);
+
+    set_song("/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a");
+}
+
+void ControlBar::set_song(QString const& path) noexcept {
+    auto items = path.split(QDir::separator());
+    if (items.size() < 4)
+        return;
+
+    std::vector<QString> data{};
+    data.reserve(items.size());
+    std::ranges::for_each(items, [&data] (auto&& item) {
+        data.push_back(std::move(item));
+    });
+
+    std::span<QString> span{data};
+
+    auto title = span.last(1)[0];
+    if (auto idx = title.lastIndexOf('.'); idx != -1) {
+        title = title.chopped(title.size() - idx);
+    }
+
+    title_->setText(QString("Title: <b><font color=#ffc66d>%1</font></b>").arg(title));
+
+    span = span.subspan(0, span.size() - 1);
+    album_->setText(QString("Album: <b><font color=#5aab73>%1</font></b>").arg(span.last(1)[0]));
+    span = span.subspan(0, span.size() - 1);
+    // performer_->setText(QString("<b><font color=#cf8e6d>%1</font></b>").arg(span.last(1)[0]));
+    performer_->setText(QString("Performer: <b><font color=#2aacb8>%1</font></b>").arg(span.last(1)[0]));
 }

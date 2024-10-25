@@ -28,8 +28,10 @@ class ControlBar : public QWidget {
     QLabel* const title_;
 
     bool played_{};
+    QString song_path_{};
 public:
     explicit ControlBar(QWidget *parent = nullptr);
 
-
+private:
+    void set_song(QString const& path) noexcept;
 };
