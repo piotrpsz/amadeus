@@ -26,8 +26,8 @@ class Workspace;
 
 class Window : public QDialog {
     Q_OBJECT
-    QMediaPlayer* const player_;
-    QAudioOutput* const audio_output_;
+    // QMediaPlayer* const player_;
+    // QAudioOutput* const audio_output_;
     QSystemTrayIcon* const tray_;
     QMenu* const tray_menu_;
     QIcon const app_icon_;

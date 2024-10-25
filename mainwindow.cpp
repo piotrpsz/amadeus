@@ -5,8 +5,8 @@
 #include <QUrl>
 #include <QIcon>
 #include <QShowEvent>
-#include <QMediaPlayer>
-#include <QAudioOutput>
+// #include <QMediaPlayer>
+// #include <QAudioOutput>
 #include <QApplication>
 #include <QSystemTrayIcon>
 #include <fmt/core.h>
@@ -33,8 +33,8 @@
 Window::Window(): QDialog(),
     controlbar_{new ControlBar},
     workspace_{new Workspace},
-    player_{new QMediaPlayer},
-    audio_output_{new QAudioOutput},
+    // player_{new QMediaPlayer},
+    // audio_output_{new QAudioOutput},
     tray_{new QSystemTrayIcon(this)},
     tray_menu_{new QMenu},
     app_icon_{":/img/speaker"},
@@ -48,11 +48,11 @@ Window::Window(): QDialog(),
 {
     setWindowTitle(shared::app_complete_name());
 
-    player_->setAudioOutput(audio_output_);
+    // player_->setAudioOutput(audio_output_);
 
-    connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
-        //fmt::print(stderr, "{}\n", pos);
-    });
+    // connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
+    //     //fmt::print(stderr, "{}\n", pos);
+    // });
 
     connect(minimize_action_, &QAction::triggered, this, &QWidget::hide);
     connect(maximize_action_, &QAction::triggered, this, &QWidget::showMaximized);
@@ -62,12 +62,12 @@ Window::Window(): QDialog(),
     connect(msg_action_     , &QAction::triggered, this, [this] (auto _) {
         show_message();
     });
-    connect(play_action_    , &QAction::triggered, player_, [this] (auto _) {
-        player_->play();
-    });
-    connect(pause_action_    , &QAction::triggered, this, [this] (auto _) {
-        player_->pause();
-    });
+    // connect(play_action_    , &QAction::triggered, player_, [this] (auto _) {
+    //     player_->play();
+    // });
+    // connect(pause_action_    , &QAction::triggered, this, [this] (auto _) {
+    //     player_->pause();
+    // });
 
 
     // Create menu
@@ -149,7 +149,7 @@ void Window::closeEvent(QCloseEvent* const event) {
 // }
 
 void Window::show_message() {
-    tray_->showMessage("Tytul", player_->source().path(), app_icon_, 15 * 1000);
+    // tray_->showMessage("Tytul", player_->source().path(), app_icon_, 15 * 1000);
 }
 
 // void Window::messageClicked()
@@ -256,7 +256,7 @@ MainWindow::~MainWindow() {}
 */
 
 void Window::showEvent(QShowEvent* e) {
-    QString path = "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a";
-    player_->setSource(QUrl::fromLocalFile(path));
-    audio_output_->setVolume(30);
+    // QString path = "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a";
+    // player_->setSource(QUrl::fromLocalFile(path));
+    // audio_output_->setVolume(30);
 }

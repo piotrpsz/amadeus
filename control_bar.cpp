@@ -1,4 +1,8 @@
+
+/*------- include files:
+-------------------------------------------------------------------*/
 #include "control_bar.h"
+#include <QUrl>
 #include <QDir>
 #include <QIcon>
 #include <QLabel>
@@ -7,16 +11,36 @@
 #include <QFileInfo>
 #include <QPushButton>
 #include <QHBoxLayout>
+#include <QMediaPlayer>
+#include <QAudioOutput>
 #include <span>
 #include <fmt/core.h>
 
 // "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a"
 // QIcon::fromTheme("folder-new")
+// SP_MediaVolumeMuted,
+
+//     void applyVolume(int volumeSliderValue)
+// {
+//     // volumeSliderValue is in the range [0..100]
+
+//     qreal linearVolume = QtAudio::convertVolume(volumeSliderValue / qreal(100.0),
+//                                                 QtAudio::LogarithmicVolumeScale,
+//                                                 QtAudio::LinearVolumeScale);
+
+//     player.setVolume(qRound(linearVolume * 100));
+// }
+
 
 ControlBar::ControlBar(QWidget *parent) :
     QWidget{parent},
+    player_{new QMediaPlayer},
+    audio_output_{new QAudioOutput},
     play_icon_{style()->standardIcon(QStyle::SP_MediaPlay)},
     pause_icon_{style()->standardIcon(QStyle::SP_MediaPause)},
+    volume_icon_{style()->standardIcon(QStyle::SP_MediaVolume)},
+    volume_muted_icon_{style()->standardIcon(QStyle::SP_MediaVolumeMuted)},
+    volume_btn_{new QPushButton},
     play_pause_btn_{new QPushButton()},
     sound_slide_{new QSlider(Qt::Horizontal)},
     performer_{new QLabel},
@@ -24,23 +48,63 @@ ControlBar::ControlBar(QWidget *parent) :
     title_{new QLabel}
 
 {
-    performer_->setText("Achim Reichel");
-    album_->setText("Melancholie und Sturmflut");
-    title_->setText("Melancholie und Sturmflut/05 Aloha Heja He");
+    // sound volume slider
+    sound_slide_->setMinimum(0);
+    sound_slide_->setMaximum(100);
+    sound_slide_->setToolTip("volume level");
+    sound_slide_->setTickInterval(5);
+    sound_slide_->setTickPosition(QSlider::TicksBothSides);
+    sound_slide_->setToolTipDuration(DEFAULT_TIP_DURATION);
+    connect(sound_slide_, &QSlider::sliderMoved, this, [this] (int const position) {
+        audio_output_->setVolume(position/100.);
+    });
 
+    player_->setAudioOutput(audio_output_);
+    connect(audio_output_, &QAudioOutput::volumeChanged, this, [this] (double volume) {
+        sound_slide_->setValue(100. * volume);
+    });
+    audio_output_->setVolume(DEFAULT_VOLUME/100.);
+
+    title_->setToolTipDuration(DEFAULT_TIP_DURATION);
+
+    // volume button/icon
+    volume_btn_->setFlat(true);
+    volume_btn_->setIcon(volume_icon_);
+    volume_btn_->setToolTip(AUDIBLE_TIP);
+    volume_btn_->setToolTipDuration(DEFAULT_TIP_DURATION);
+    connect(volume_btn_, &QPushButton::clicked, this, [this] (auto _) {
+        if ((muted_ = !muted_)) {
+            volume_btn_->setIcon(volume_muted_icon_);
+            volume_btn_->setToolTip(MUTE_TIP);
+        } else {
+            volume_btn_->setIcon(volume_icon_);
+            volume_btn_->setToolTip(AUDIBLE_TIP);
+        }
+        sound_slide_->setEnabled(muted_);
+        audio_output_->setMuted(muted_);
+    });
+
+    // play/pause button/pause
     play_pause_btn_->setFlat(true);
     play_pause_btn_->setIcon(play_icon_);
     play_pause_btn_->setToolTip(PLAY_TIP);
     play_pause_btn_->setToolTipDuration(DEFAULT_TIP_DURATION);
-    connect(play_pause_btn_, &QPushButton::clicked, this, [this] {
-        played_ = !played_;
-        play_pause_btn_->setIcon(played_ ? pause_icon_ : play_icon_);
-        play_pause_btn_->setToolTip(played_ ? PAUSE_TIP : PLAY_TIP);
+    connect(play_pause_btn_, &QPushButton::clicked, this, [this] (auto _) {
+        if ((played_ = !played_)) {
+            play_pause_btn_->setIcon(pause_icon_);
+            play_pause_btn_->setToolTip(PAUSE_TIP);
+            player_->play();
+        }
+        else {
+            play_pause_btn_->setIcon(play_icon_);
+            play_pause_btn_->setToolTip(PLAY_TIP);
+            player_->pause();
+        }
     });
 
-    auto const audio_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaVolume), "");
-    audio_btn->setFlat(true);
-    audio_btn->setDisabled(true);
+    // auto const audio_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaVolume), "");
+    // audio_btn->setFlat(true);
+    // audio_btn->setDisabled(true);
 
     auto const skip_backward_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaSkipBackward), "");
     skip_backward_btn->setFlat(true);
@@ -77,10 +141,11 @@ ControlBar::ControlBar(QWidget *parent) :
     auto const layout = new QHBoxLayout;
     layout->addLayout(info_layout);
     layout->addStretch();
-    layout->addWidget(audio_btn);
+    layout->addWidget(volume_btn_);
     layout->addWidget(sound_slide_);
     layout->addSpacing(10);
     layout->addLayout(play_layout);
+    layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
 
     set_song("/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a");
@@ -96,19 +161,22 @@ void ControlBar::set_song(QString const& path) noexcept {
     std::ranges::for_each(items, [&data] (auto&& item) {
         data.push_back(std::move(item));
     });
-
     std::span<QString> span{data};
 
     auto title = span.last(1)[0];
-    if (auto idx = title.lastIndexOf('.'); idx != -1) {
+    if (auto idx = title.lastIndexOf('.'); idx != -1)
         title = title.chopped(title.size() - idx);
-    }
-
-    title_->setText(QString("Title: <b><font color=#ffc66d>%1</font></b>").arg(title));
+    title_->setText(QString("Title: <b><font color=#ffc66d>%1</font></b>")
+                        .arg(title));
 
     span = span.subspan(0, span.size() - 1);
-    album_->setText(QString("Album: <b><font color=#5aab73>%1</font></b>").arg(span.last(1)[0]));
+    album_->setText(QString("Album: <b><font color=#5aab73>%1</font></b>")
+                        .arg(span.last(1)[0]));
     span = span.subspan(0, span.size() - 1);
-    // performer_->setText(QString("<b><font color=#cf8e6d>%1</font></b>").arg(span.last(1)[0]));
-    performer_->setText(QString("Performer: <b><font color=#2aacb8>%1</font></b>").arg(span.last(1)[0]));
+    performer_->setText(QString("Performer: <b><font color=#2aacb8>%1</font></b>")
+                            .arg(span.last(1)[0]));
+    title_->setToolTip(path);
+
+    // Set player.
+    player_->setSource(QUrl::fromLocalFile(path));
 }
