@@ -16,22 +16,6 @@
 #include <span>
 #include <fmt/core.h>
 
-// "/home/piotr/Music/Achim Reichel/Melancholie und Sturmflut/05 Aloha Heja He.m4a"
-// QIcon::fromTheme("folder-new")
-// SP_MediaVolumeMuted,
-
-//     void applyVolume(int volumeSliderValue)
-// {
-//     // volumeSliderValue is in the range [0..100]
-
-//     qreal linearVolume = QtAudio::convertVolume(volumeSliderValue / qreal(100.0),
-//                                                 QtAudio::LogarithmicVolumeScale,
-//                                                 QtAudio::LinearVolumeScale);
-
-//     player.setVolume(qRound(linearVolume * 100));
-// }
-
-
 ControlBar::ControlBar(QWidget *parent) :
     QWidget{parent},
     player_{new QMediaPlayer},
@@ -48,7 +32,9 @@ ControlBar::ControlBar(QWidget *parent) :
     title_{new QLabel}
 
 {
-    // sound volume slider
+    title_->setToolTipDuration(DEFAULT_TIP_DURATION);
+
+    // sound volume slider settings
     sound_slide_->setMinimum(0);
     sound_slide_->setMaximum(100);
     sound_slide_->setToolTip("volume level");
@@ -59,15 +45,20 @@ ControlBar::ControlBar(QWidget *parent) :
         audio_output_->setVolume(position/100.);
     });
 
+    // audio (player & output) settings
     player_->setAudioOutput(audio_output_);
+    connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
+        // TODO handle changed position
+        // fmt::print(stderr, "{}\n", pos);
+    });
+
     connect(audio_output_, &QAudioOutput::volumeChanged, this, [this] (double volume) {
         sound_slide_->setValue(100. * volume);
     });
+
     audio_output_->setVolume(DEFAULT_VOLUME/100.);
 
-    title_->setToolTipDuration(DEFAULT_TIP_DURATION);
-
-    // volume button/icon
+    // volume button/icon settings
     volume_btn_->setFlat(true);
     volume_btn_->setIcon(volume_icon_);
     volume_btn_->setToolTip(AUDIBLE_TIP);
@@ -76,15 +67,16 @@ ControlBar::ControlBar(QWidget *parent) :
         if ((muted_ = !muted_)) {
             volume_btn_->setIcon(volume_muted_icon_);
             volume_btn_->setToolTip(MUTE_TIP);
+            sound_slide_->setEnabled(false);
         } else {
             volume_btn_->setIcon(volume_icon_);
             volume_btn_->setToolTip(AUDIBLE_TIP);
+            sound_slide_->setEnabled(true);
         }
-        sound_slide_->setEnabled(muted_);
         audio_output_->setMuted(muted_);
     });
 
-    // play/pause button/pause
+    // play/pause button/pause settings
     play_pause_btn_->setFlat(true);
     play_pause_btn_->setIcon(play_icon_);
     play_pause_btn_->setToolTip(PLAY_TIP);
@@ -102,10 +94,6 @@ ControlBar::ControlBar(QWidget *parent) :
         }
     });
 
-    // auto const audio_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaVolume), "");
-    // audio_btn->setFlat(true);
-    // audio_btn->setDisabled(true);
-
     auto const skip_backward_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaSkipBackward), "");
     skip_backward_btn->setFlat(true);
     skip_backward_btn->setToolTip("play previous");
@@ -117,10 +105,10 @@ ControlBar::ControlBar(QWidget *parent) :
     skip_forward_btn->setToolTipDuration(DEFAULT_TIP_DURATION);
 
     // Sound slider settings.
-    sound_slide_->setMinimum(0);
-    sound_slide_->setMaximum(100);
-    sound_slide_->setToolTip("volume level");
-    sound_slide_->setToolTipDuration(DEFAULT_TIP_DURATION);
+    // sound_slide_->setMinimum(0);
+    // sound_slide_->setMaximum(100);
+    // sound_slide_->setToolTip("volume level");
+    // sound_slide_->setToolTipDuration(DEFAULT_TIP_DURATION);
 
     // Lyout with buttons to manage playback.
     auto const play_layout = new QHBoxLayout;
