@@ -43,13 +43,19 @@ FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
     connect(this, &QTableWidget::cellDoubleClicked, [&] (auto const row, auto const col){
         if (auto const selected_item = item(row, 0)) {
             auto const path = selected_item->data(PATH).toString();
-            EventController::instance().send(event::SongSelected, path);
+            EventController::instance().send(event::SongOneShot, path);
         }
     });
+    connect(this, &QTableWidget::itemClicked, this, [this] (auto item) {
+        fmt::print(stderr, "table item changed\n");
+        setCurrentItem(item);
+        emit currentItemChanged(item, item);
+    });
 
-    EventController::instance().append(this,
-        event::DirSelected
-    );
+    EventController::instance()
+        .append(this,
+                event::DirSelected,
+                event::CheckingAllSongs);
 }
 
 FilesTable::~FilesTable() {
@@ -63,6 +69,17 @@ void FilesTable::customEvent(QEvent* const event) {
         if (auto const data = e->data(); !data.empty()) {
             clear_content();
             new_content_for(data[0].toString());
+        }
+        break;
+    case event::CheckingAllSongs:
+        if (auto const data = e->data(); !data.empty()) {
+            auto const state = data[0].toBool() ? Qt::Checked : Qt::Unchecked;
+            auto const n = rowCount();
+            for (auto i = 0; i < n; ++i) {
+                auto const row = item(i, 0);
+                row->setCheckState(state);
+                selected_.insert(row->data(PATH).toString());
+            }
         }
         break;
     }
@@ -79,6 +96,7 @@ void FilesTable::new_content_for(QString&& path) {
             auto const fname = fi.fileName();
             if (fname[0] !='.' && (fname.endsWith(".m4a") || fname.endsWith(".mp3"))) {
                 auto item = new QTableWidgetItem(fname);
+                item->setCheckState(Qt::Unchecked);
                 item->setData(PATH, fi.filePath());
                 data.push_back(item);
             }

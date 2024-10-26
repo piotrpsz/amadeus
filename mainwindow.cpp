@@ -71,7 +71,7 @@ Window::Window(): QDialog(),
     setLayout(main_layout);
 
     tray_->show();
-    shared::resize(this, 75, 75);
+    shared::resize(this, 60, 60);
 }
 
 void Window::setVisible(bool const visible) {

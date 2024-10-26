@@ -28,7 +28,7 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include <QTableWidget>
-#include <vector>
+#include <unordered_set>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
@@ -38,7 +38,7 @@ class QEvent;
 class FilesTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1};
-
+    std::unordered_set<QString> selected_{};
 public:
     FilesTable(QWidget* = nullptr);
     ~FilesTable();

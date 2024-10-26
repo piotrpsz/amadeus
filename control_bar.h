@@ -45,6 +45,7 @@ public:
     ~ControlBar();
 private:
     void set_song(QString const& path) noexcept;
+    void playback_changed() const noexcept;
     void customEvent(QEvent*) override;
 };
 

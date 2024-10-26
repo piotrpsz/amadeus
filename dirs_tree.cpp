@@ -51,6 +51,7 @@ DirsTree::DirsTree(QWidget* const parent) :
         if (auto item = currentItem(); item) {
             auto path{item->data(0, PATH).toString()};
             EventController::instance().send(event::DirSelected, std::move(path));
+            EventController::instance().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
         }
     });
 
@@ -67,6 +68,10 @@ DirsTree::DirsTree(QWidget* const parent) :
     connect(this, &QTreeWidget::currentItemChanged, this, [this](auto, auto) {
         timer_->stop();
         timer_->start();
+    });
+    connect(this, &QTreeWidget::itemClicked, this, [this] (auto item, auto _) {
+        setCurrentItem(item);
+        emit currentItemChanged(item, item);
     });
 
     update_content("/home/piotr/Music");
@@ -100,6 +105,8 @@ void DirsTree::add_items_for(QTreeWidgetItem* const parent) {
             if (fname[0] !='.') {
                 auto const item = new QTreeWidgetItem(parent);
                 item->setText(0, fname);
+                if (pid != 0)
+                    item->setCheckState(0, Qt::Unchecked);
                 item->setData(0, PATH, fi.filePath());
                 item->setData(0, PID, pid);
                 item->setData(0, ID, ++did);

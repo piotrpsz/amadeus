@@ -57,6 +57,12 @@ namespace event {
         PlaybackPoition,
 
         DirSelected,
-        SongSelected,
+        SongOneShot,
+        CheckingAllSongs,
+
+        OneSongSelected,
+        OneSongUnselected,
+        SongsSelectedAll,
+        SongsUnselectedAll,
     };
 }

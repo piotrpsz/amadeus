@@ -85,16 +85,8 @@ ControlBar::ControlBar(QWidget *parent) :
     play_pause_btn_->setToolTip(PLAY_TIP);
     play_pause_btn_->setToolTipDuration(DEFAULT_TIP_DURATION);
     connect(play_pause_btn_, &QPushButton::clicked, this, [this] (auto _) {
-        if ((played_ = !played_)) {
-            play_pause_btn_->setIcon(pause_icon_);
-            play_pause_btn_->setToolTip(PAUSE_TIP);
-            player_->play();
-        }
-        else {
-            play_pause_btn_->setIcon(play_icon_);
-            play_pause_btn_->setToolTip(PLAY_TIP);
-            player_->pause();
-        }
+        played_ = !played_;
+        playback_changed();
     });
 
     auto const skip_backward_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaSkipBackward), "");
@@ -139,7 +131,7 @@ ControlBar::ControlBar(QWidget *parent) :
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
 
-    EventController::instance().append(this, event::SongSelected);
+    EventController::instance().append(this, event::SongOneShot);
 }
 
 ControlBar::~ControlBar() {
@@ -149,9 +141,13 @@ ControlBar::~ControlBar() {
 void ControlBar::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
-    case event::SongSelected:
-        if (auto const data = e->data(); !data.empty())
+    case event::SongOneShot:
+        if (auto const data = e->data(); !data.empty()) {
             set_song(data[0].toString());
+            played_ = true;
+            playback_changed();
+            player_->play();
+        }
         break;
     }
 }
@@ -184,4 +180,16 @@ void ControlBar::set_song(QString const& path) noexcept {
 
     // Set player.
     player_->setSource(QUrl::fromLocalFile(path));
+}
+
+void ControlBar::playback_changed() const noexcept {
+    if (played_) {
+        play_pause_btn_->setIcon(pause_icon_);
+        play_pause_btn_->setToolTip(PAUSE_TIP);
+        player_->play();
+        return;
+    }
+    play_pause_btn_->setIcon(play_icon_);
+    play_pause_btn_->setToolTip(PLAY_TIP);
+    player_->pause();
 }

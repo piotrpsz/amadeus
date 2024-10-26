@@ -27,6 +27,7 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include <QTreeWidget>
+#include <unordered_set>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
@@ -42,7 +43,7 @@ class DirsTree : public QTreeWidget {
     enum {ID = Qt::UserRole + 1, PID, PATH};
     QTreeWidgetItem* root_{};
     QTimer* const timer_;
-    QString selected_dir_{};
+    std::unordered_set<QString> selections_{};
 
 public:
     DirsTree(QWidget* = nullptr);
