@@ -47,8 +47,11 @@ class DirsTree : public QTreeWidget {
 
 public:
     DirsTree(QWidget* = nullptr);
+    ~DirsTree();
 
 private:
+    void customEvent(QEvent*) override;
     void update_content(QString const& path);
     void add_items_for(QTreeWidgetItem* parent);
+    QTreeWidgetItem* item_for(QString&& path) const;
 };

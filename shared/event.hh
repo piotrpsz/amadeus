@@ -56,13 +56,12 @@ namespace event {
         PlaybackRestarted,
         PlaybackPoition,
 
-        DirSelected,
-        SongOneShot,
-        CheckingAllSongs,
+        SongOneShot,            // table -> controller
+        DirSelected,            // tree -> table
+        CheckingAllSongs,       // tree -> table
+        NoSongsSelected,        // table -> tree
+        PartlySongsSelected,    // table -> tree
+        AllSongsSelected,       // table -> tree
 
-        OneSongSelected,
-        OneSongUnselected,
-        SongsSelectedAll,
-        SongsUnselectedAll,
     };
 }

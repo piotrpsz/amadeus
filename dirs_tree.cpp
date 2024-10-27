@@ -33,6 +33,7 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QTreeWidgetItem>
+#include <QTreeWidgetItemIterator>
 #include <fmt/core.h>
 
 DirsTree::DirsTree(QWidget* const parent) :
@@ -76,9 +77,41 @@ DirsTree::DirsTree(QWidget* const parent) :
 
     update_content("/home/piotr/Music");
     setCurrentItem(root_);
+
+    EventController::instance().append(this,
+        event::AllSongsSelected,
+        event::NoSongsSelected,
+        event::PartlySongsSelected);
 }
 
+DirsTree::~DirsTree() {
+    EventController::instance().remove(this);
+}
 
+// Handle my own events.
+void DirsTree::customEvent(QEvent* const event) {
+    auto const e = dynamic_cast<Event*>(event);
+    switch (int(e->type())) {
+    case event::AllSongsSelected:
+        fmt::print(stderr, "all\n");
+        if (auto const data = e->data(); !data.empty())
+            if (auto const item = item_for(data[0].toString()))
+                item->setCheckState(0, Qt::Checked);
+        break;
+    case event::NoSongsSelected:
+        fmt::print(stderr, "żaden\n");
+        if (auto const data = e->data(); !data.empty())
+            if (auto const item = item_for(data[0].toString()))
+                item->setCheckState(0, Qt::Unchecked);
+        break;
+    case event::PartlySongsSelected:
+        fmt::print(stderr, "niektóre\n");
+        if (auto const data = e->data(); !data.empty())
+            if (auto const item = item_for(data[0].toString()))
+                item->setCheckState(0, Qt::PartiallyChecked);
+        break;
+    }
+}
 
 void DirsTree::update_content(QString const& path) {
     clear();
@@ -116,4 +149,16 @@ void DirsTree::add_items_for(QTreeWidgetItem* const parent) {
     }
 }
 
+auto DirsTree::
+item_for(QString&& path) const
+-> QTreeWidgetItem* {
+    QTreeWidgetItemIterator it(root_);
+    while (*it) {
+        QTreeWidgetItem* const item = *it;
+        if (item->data(0, PATH).toString() == path)
+            return item;
+        ++it;
+    }
+    return {};
+}
 

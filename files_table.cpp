@@ -29,6 +29,7 @@
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>
+#include <QFileInfo>
 #include <QHeaderView>
 #include <QTableWidgetItem>
 #include <fmt/core.h>
@@ -46,10 +47,23 @@ FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
             EventController::instance().send(event::SongOneShot, path);
         }
     });
-    connect(this, &QTableWidget::itemClicked, this, [this] (auto item) {
-        fmt::print(stderr, "table item changed\n");
-        setCurrentItem(item);
-        emit currentItemChanged(item, item);
+    connect(this, &QTableWidget::itemClicked, this, [this] (QTableWidgetItem* const item) {
+        if (item) {
+            auto checked = item->checkState();
+            auto const path = item->data(PATH).toString();
+            auto const dir = QFileInfo(path).dir().absolutePath();
+            if (checked) selected_.insert(path);
+            else selected_.erase(path);
+            setCurrentItem(item);
+
+            fmt::print(stderr, "selcted: {}, row count: {}\n", selected_.size(), rowCount());
+            if (selected_.empty())
+                EventController::instance().send(event::NoSongsSelected, dir);
+            else if (selected_.size() == rowCount())
+                EventController::instance().send(event::AllSongsSelected, dir);
+            else
+                EventController::instance().send(event::PartlySongsSelected, dir);
+        }
     });
 
     EventController::instance()
@@ -62,23 +76,28 @@ FilesTable::~FilesTable() {
     EventController::instance().remove(this);
 }
 
+// Handle my own events.
 void FilesTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
+
     case event::DirSelected:
         if (auto const data = e->data(); !data.empty()) {
             clear_content();
             new_content_for(data[0].toString());
         }
         break;
+
     case event::CheckingAllSongs:
         if (auto const data = e->data(); !data.empty()) {
+            selected_.clear();
             auto const state = data[0].toBool() ? Qt::Checked : Qt::Unchecked;
             auto const n = rowCount();
             for (auto i = 0; i < n; ++i) {
                 auto const row = item(i, 0);
                 row->setCheckState(state);
-                selected_.insert(row->data(PATH).toString());
+                if (state == Qt::Checked)
+                    selected_.insert(row->data(PATH).toString());
             }
         }
         break;
