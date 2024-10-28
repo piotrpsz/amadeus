@@ -30,9 +30,14 @@
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>
+#include <QMenu>
+#include <QEvent>
+#include <QAction>
 #include <QFileInfo>
+#include <QMouseEvent>
 #include <QHeaderView>
 #include <QTableWidgetItem>
+#include <QContextMenuEvent>
 #include <fmt/core.h>
 
 FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
@@ -59,13 +64,7 @@ FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
                 Selection::self().erase(path);
 
             setCurrentItem(item);
-
-            if (are_all_unchecked())
-                EventController::instance().send(event::NoSongsSelected, dir);
-            else if (are_all_checked())
-                EventController::instance().send(event::AllSongsSelected, dir);
-            else
-                EventController::instance().send(event::PartlySongsSelected, dir);
+            update_parent();
         }
     });
 
@@ -79,15 +78,72 @@ FilesTable::~FilesTable() {
     EventController::instance().remove(this);
 }
 
+void FilesTable::contextMenuEvent(QContextMenuEvent* const event) {
+    auto const menu = new QMenu(this);
+    auto const check_all_action = menu->addAction("Select all");
+    auto const uncheck_all_action = menu->addAction("Unselect all");
+    menu->addSeparator();
+    auto const invert_action = menu->addAction("Invert selection");
+
+    connect(check_all_action, &QAction::triggered, this, [this] (auto _) {
+        for (auto i = 0; i < rowCount(); ++i) {
+            auto const it = item(i, 0);
+            if (it->checkState() != Qt::Checked) {
+                it->setCheckState(Qt::Checked);
+                Selection::self().insert(it->data(PATH).toString());
+            }
+        }
+        update_parent();
+    });
+
+    connect(uncheck_all_action, &QAction::triggered, this, [this] (auto _) {
+        for (auto i = 0; i < rowCount(); ++i) {
+            auto const it = item(i, 0);
+            if (it->checkState() != Qt::Unchecked) {
+                it->setCheckState(Qt::Unchecked);
+                Selection::self().erase(it->data(PATH).toString());
+            }
+        }
+        update_parent();
+    });
+    connect(invert_action, &QAction::triggered, this, [this] (auto _) {
+        for (auto i = 0; i < rowCount(); ++i) {
+            auto const it = item(i, 0);
+            if (it->checkState() == Qt::Checked) {
+                it->setCheckState(Qt::Unchecked);
+                Selection::self().erase(it->data(PATH).toString());
+            }
+            else {
+                it->setCheckState(Qt::Checked);
+                Selection::self().insert(it->data(PATH).toString());
+            }
+        }
+    });
+
+
+    menu->exec(event->globalPos());
+    delete menu;
+}
+
+void FilesTable::mousePressEvent(QMouseEvent* const event) {
+    if (event->button() == Qt::RightButton)
+        return;
+    QTableWidget::mousePressEvent(event);
+}
+
 // Handle my own events.
 void FilesTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
 
+    // Event with information that a new album has been selected.
     case event::DirSelected:
         if (auto const data = e->data(); !data.empty()) {
+            auto dir = data[0].toString();
+            dir_ = dir;
             clear_content();
-            new_content_for(data[0].toString());
+            new_content_for(std::move(dir));
+
         }
         break;
 
@@ -137,6 +193,15 @@ void FilesTable::new_content_for(QString&& path) {
         setItem(row++, 0, item);
     });
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+}
+
+void FilesTable::update_parent() const noexcept {
+    if (are_all_unchecked())
+        EventController::instance().send(event::NoSongsSelected, dir_);
+    else if (are_all_checked())
+        EventController::instance().send(event::AllSongsSelected, dir_);
+    else
+        EventController::instance().send(event::PartlySongsSelected, dir_);
 }
 
 bool FilesTable::are_all_checked() const noexcept {

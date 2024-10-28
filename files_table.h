@@ -32,15 +32,20 @@
 /*------- forward declarations:
 -------------------------------------------------------------------*/
 class QEvent;
+class QMouseEvent;
+class QContextMenuEvent;
 
 
 class FilesTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1};
+    QString dir_{};
 public:
     FilesTable(QWidget* = nullptr);
     ~FilesTable();
 private:
+    void mousePressEvent(QMouseEvent*) override;
+    void contextMenuEvent(QContextMenuEvent*) override;
     void customEvent(QEvent*) override;
     void new_content_for(QString&& path);
 
@@ -49,6 +54,7 @@ private:
         setRowCount(0);
     }
 
+    void update_parent() const noexcept;
     bool are_all_checked() const noexcept;
     bool are_all_unchecked() const noexcept;
 };

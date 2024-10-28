@@ -94,19 +94,16 @@ void DirsTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
     case event::AllSongsSelected:
-        fmt::print(stderr, "all\n");
         if (auto const data = e->data(); !data.empty())
             if (auto const item = item_for(data[0].toString()))
                 item->setCheckState(0, Qt::Checked);
         break;
     case event::NoSongsSelected:
-        fmt::print(stderr, "żaden\n");
         if (auto const data = e->data(); !data.empty())
             if (auto const item = item_for(data[0].toString()))
                 item->setCheckState(0, Qt::Unchecked);
         break;
     case event::PartlySongsSelected:
-        fmt::print(stderr, "niektóre\n");
         if (auto const data = e->data(); !data.empty())
             if (auto const item = item_for(data[0].toString()))
                 item->setCheckState(0, Qt::PartiallyChecked);
@@ -126,7 +123,9 @@ void DirsTree::update_content(QString const& path) {
     root_->setExpanded(true);
 }
 
-void DirsTree::add_items_for(QTreeWidgetItem* const parent) {
+auto DirsTree::
+add_items_for(QTreeWidgetItem* const parent)
+-> void {
     auto parent_path = parent->data(0, PATH).toString();
     QDir const dir{parent_path};
     auto const content = dir.entryInfoList();
