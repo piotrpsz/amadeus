@@ -25,6 +25,7 @@
 
 /*------- include files:
 -------------------------------------------------------------------*/
+#include "model/selection.h"
 #include "files_table.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
@@ -52,14 +53,16 @@ FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
             auto checked = item->checkState();
             auto const path = item->data(PATH).toString();
             auto const dir = QFileInfo(path).dir().absolutePath();
-            if (checked) selected_.insert(path);
-            else selected_.erase(path);
+            if (checked)
+                Selection::self().insert(path);
+            else
+                Selection::self().erase(path);
+
             setCurrentItem(item);
 
-            fmt::print(stderr, "selcted: {}, row count: {}\n", selected_.size(), rowCount());
-            if (selected_.empty())
+            if (are_all_unchecked())
                 EventController::instance().send(event::NoSongsSelected, dir);
-            else if (selected_.size() == rowCount())
+            else if (are_all_checked())
                 EventController::instance().send(event::AllSongsSelected, dir);
             else
                 EventController::instance().send(event::PartlySongsSelected, dir);
@@ -88,16 +91,18 @@ void FilesTable::customEvent(QEvent* const event) {
         }
         break;
 
+    // Event with a request to check/uncheck ALL items.
     case event::CheckingAllSongs:
         if (auto const data = e->data(); !data.empty()) {
-            selected_.clear();
             auto const state = data[0].toBool() ? Qt::Checked : Qt::Unchecked;
             auto const n = rowCount();
             for (auto i = 0; i < n; ++i) {
                 auto const row = item(i, 0);
                 row->setCheckState(state);
                 if (state == Qt::Checked)
-                    selected_.insert(row->data(PATH).toString());
+                    Selection::self().insert(row->data(PATH).toString());
+                else
+                    Selection::self().erase(row->data(PATH).toString());
             }
         }
         break;
@@ -115,8 +120,12 @@ void FilesTable::new_content_for(QString&& path) {
             auto const fname = fi.fileName();
             if (fname[0] !='.' && (fname.endsWith(".m4a") || fname.endsWith(".mp3"))) {
                 auto item = new QTableWidgetItem(fname);
-                item->setCheckState(Qt::Unchecked);
-                item->setData(PATH, fi.filePath());
+                auto const path = fi.filePath();
+                if (Selection::self().contains(path))
+                    item->setCheckState(Qt::Checked);
+                else
+                    item->setCheckState(Qt::Unchecked);
+                item->setData(PATH, path);
                 data.push_back(item);
             }
         }
@@ -129,3 +138,20 @@ void FilesTable::new_content_for(QString&& path) {
     });
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
+
+bool FilesTable::are_all_checked() const noexcept {
+    auto const n = rowCount();
+    for (auto i = 0; i < n; ++i)
+        if (item(i, 0)->checkState() != Qt::Checked)
+            return false;
+    return true;
+}
+
+bool FilesTable::are_all_unchecked() const noexcept {
+    auto const n = rowCount();
+    for (auto i = 0; i < n; ++i)
+        if (item(i, 0)->checkState() != Qt::Unchecked)
+            return false;
+    return true;
+}
+

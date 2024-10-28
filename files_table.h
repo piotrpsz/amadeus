@@ -28,7 +28,6 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include <QTableWidget>
-#include <unordered_set>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
@@ -38,7 +37,6 @@ class QEvent;
 class FilesTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1};
-    std::unordered_set<QString> selected_{};
 public:
     FilesTable(QWidget* = nullptr);
     ~FilesTable();
@@ -50,4 +48,7 @@ private:
         clearContents();
         setRowCount(0);
     }
+
+    bool are_all_checked() const noexcept;
+    bool are_all_unchecked() const noexcept;
 };

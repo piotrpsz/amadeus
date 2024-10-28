@@ -23,6 +23,15 @@ public:
     void erase(QString const& path) noexcept {
         data_.erase(path.toStdString());
     }
+    bool contains(QString const& path) noexcept {
+        return data_.contains(path.toStdString());
+    }
+    bool empty() const noexcept {
+        return data_.empty();
+    }
+    size_t size() const noexcept {
+        return data_.size();
+    }
     void clear() noexcept {
         data_.clear();
     }

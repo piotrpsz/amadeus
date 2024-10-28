@@ -52,7 +52,8 @@ DirsTree::DirsTree(QWidget* const parent) :
         if (auto item = currentItem(); item) {
             auto path{item->data(0, PATH).toString()};
             EventController::instance().send(event::DirSelected, std::move(path));
-            EventController::instance().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
+            if (item->checkState(0) != Qt::PartiallyChecked)
+                EventController::instance().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
         }
     });
 
