@@ -2,12 +2,13 @@
 
 #include "../shared/event.hh"
 #include "../shared/event_controller.hh"
-#include <unordered_set>
+#include <set>
 #include <string>
 #include <QString>
 
-class Selection {
-    std::unordered_set<std::string> data_{};
+class Selection : QObject {
+    Q_OBJECT
+    std::set<std::string> data_{};
 public:
     static Selection& self() noexcept {
         static auto obj = Selection();
@@ -40,6 +41,13 @@ public:
         data_.clear();
         EventController::self().send(event::SelectionChanged);
     }
+
+    using iterator = std::set<std::string>::iterator;
+    using const_iterator = std::set<std::string>::const_iterator;
+    iterator begin() { return data_.begin(); }
+    iterator end() { return data_.end(); }
+    const_iterator cbegin() { return data_.cbegin(); }
+    const_iterator cend() { return data_.cend(); }
 
 private:
     Selection() = default;

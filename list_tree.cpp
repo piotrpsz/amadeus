@@ -49,12 +49,12 @@ ListTree::ListTree(QWidget* const parent) :
     timer_->setInterval(500);
     timer_->setSingleShot(true);
     connect(timer_, &QTimer::timeout, this, [this]() {
-        if (auto item = currentItem(); item) {
-            auto path{item->data(0, PATH).toString()};
-            EventController::self().send(event::DirSelected, std::move(path));
-            if (item->checkState(0) != Qt::PartiallyChecked)
-                EventController::self().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
-        }
+        // if (auto item = currentItem(); item) {
+        //     auto path{item->data(0, PATH).toString()};
+        //     EventController::self().send(event::DirSelected, std::move(path));
+        //     if (item->checkState(0) != Qt::PartiallyChecked)
+        //         EventController::self().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
+        // }
     });
 
     auto p = palette();
@@ -76,42 +76,28 @@ ListTree::ListTree(QWidget* const parent) :
         emit currentItemChanged(item, item);
     });
 
-    update_content("/home/piotr/Music");
-    setCurrentItem(root_);
+    update_content();
+    setCurrentItem(current_);
 
-    EventController::self().append(this,
-        event::AllSongsSelected,
-        event::NoSongsSelected,
-        event::PartlySongsSelected);
+    // EventController::self().append(this,
+        // event::SelectionChanged);
 }
 
 ListTree::~ListTree() {
-    EventController::self().remove(this);
+    // EventController::self().remove(this);
 }
 
 // Handle my own events.
 void ListTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
-    // switch (int(e->type())) {
-    // case event::AllSongsSelected:
-    //     if (auto const data = e->data(); !data.empty())
-    //         if (auto const item = item_for(data[0].toString()))
-    //             item->setCheckState(0, Qt::Checked);
-    //     break;
-    // case event::NoSongsSelected:
-    //     if (auto const data = e->data(); !data.empty())
-    //         if (auto const item = item_for(data[0].toString()))
-    //             item->setCheckState(0, Qt::Unchecked);
-    //     break;
-    // case event::PartlySongsSelected:
-    //     if (auto const data = e->data(); !data.empty())
-    //         if (auto const item = item_for(data[0].toString()))
-    //             item->setCheckState(0, Qt::PartiallyChecked);
-    //     break;
-    // }
+    switch (int(e->type())) {
+    case event::SelectionChanged:
+        // update_content();
+        break;
+    }
 }
 
-void ListTree::update_content(QString const& path) {
+void ListTree::update_content() {
     clear();
     current_ = new QTreeWidgetItem(this);
     current_->setText(0, "Current selections");

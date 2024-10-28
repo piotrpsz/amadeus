@@ -34,6 +34,7 @@
 #include <QEvent>
 #include <QAction>
 #include <QFileInfo>
+#include <QShowEvent>
 #include <QMouseEvent>
 #include <QHeaderView>
 #include <QTableWidgetItem>
@@ -46,6 +47,7 @@ ListFilesTable::ListFilesTable(QWidget* const parent) : QTableWidget(parent) {
     setEditTriggers(NoEditTriggers);
     setSelectionBehavior(SelectRows);
     setHorizontalHeaderItem(0, new QTableWidgetItem("Title"));
+    horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 
     connect(this, &QTableWidget::cellDoubleClicked, [&] (auto const row, auto const col){
         if (auto const selected_item = item(row, 0)) {
@@ -67,10 +69,10 @@ ListFilesTable::ListFilesTable(QWidget* const parent) : QTableWidget(parent) {
         }
     });
 
-    // EventController::instance()
-    //     .append(this,
-    //             event::DirSelected,
-    //             event::CheckingAllSongs);
+    EventController::self()
+        .append(this, event::SelectionChanged);
+
+    update_content();
 }
 
 ListFilesTable::~ListFilesTable() {
@@ -121,6 +123,10 @@ void ListFilesTable::contextMenuEvent(QContextMenuEvent* const event) {
 
     menu->exec(event->globalPos());
     delete menu;
+}
+
+void ListFilesTable::showEvent(QShowEvent* event) {
+    update_content();
 }
 
 void ListFilesTable::mousePressEvent(QMouseEvent* const event) {
@@ -193,6 +199,21 @@ void ListFilesTable::new_content_for(QString&& path) {
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
+void ListFilesTable::update_content() noexcept {
+    clear_content();
+
+    int row{};
+    setRowCount(Selection::self().size());
+    std::ranges::for_each(Selection::self(), [this, &row] (auto const path) {
+        auto const qpath = QString::fromStdString(path);
+        QFileInfo const fi{qpath};
+        auto item = new QTableWidgetItem(fi.fileName());
+        item->setData(PATH, fi.filePath());
+        setItem(row++, 0, item);
+    });
+
+}
+
 void ListFilesTable::update_parent() const noexcept {
     if (are_all_unchecked())
         EventController::self().send(event::NoSongsSelected, dir_);
@@ -217,4 +238,5 @@ bool ListFilesTable::are_all_unchecked() const noexcept {
             return false;
     return true;
 }
+
 

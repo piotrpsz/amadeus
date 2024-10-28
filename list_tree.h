@@ -52,7 +52,7 @@ public:
 
 private:
     void customEvent(QEvent*) override;
-    void update_content(QString const& path);
+    void update_content();
     auto add_items_for(QTreeWidgetItem* parent) -> void;
     QTreeWidgetItem* item_for(QString&& path) const;
 };
