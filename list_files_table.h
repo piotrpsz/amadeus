@@ -20,48 +20,41 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 28.10.2024.
 // piotr@beesoft.pl
 
 #pragma once
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include <QEvent>
-#include <QVector>
-#include <QVariant>
+#include <QTableWidget>
 
-class Event : public QEvent {
-    QVector<QVariant> data_{};
+/*------- forward declarations:
+-------------------------------------------------------------------*/
+class QEvent;
+class QMouseEvent;
+class QContextMenuEvent;
+
+
+class ListFilesTable : public QTableWidget {
+    Q_OBJECT
+    enum {PATH = Qt::UserRole + 1};
+    QString dir_{};
 public:
-    template<typename... T>
-    explicit Event(int const id, T... args) : QEvent(static_cast<QEvent::Type>(id)) {
-        (..., data_.push_back(args));
+    ListFilesTable(QWidget* = nullptr);
+    ~ListFilesTable();
+private:
+    void mousePressEvent(QMouseEvent*) override;
+    void contextMenuEvent(QContextMenuEvent*) override;
+    void customEvent(QEvent*) override;
+    void new_content_for(QString&& path);
+
+    void clear_content() noexcept {
+        clearContents();
+        setRowCount(0);
     }
 
-    QVector<QVariant> data() && {
-        return std::move(data_);
-    }
-    [[nodiscard]] QVector<QVariant> const& data() const& {
-        return data_;
-    }
+    void update_parent() const noexcept;
+    bool are_all_checked() const noexcept;
+    bool are_all_unchecked() const noexcept;
 };
-
-namespace event {
-    enum {
-        None = (QEvent::User + 1),
-        PlaybackStarted,
-        PlaybackFinished,
-        PlaybackPaused,
-        PlaybackRestarted,
-        PlaybackPoition,
-
-        SongOneShot,            // table -> controller
-        DirSelected,            // tree -> table
-        CheckingAllSongs,       // tree -> table
-        NoSongsSelected,        // table -> tree
-        PartlySongsSelected,    // table -> tree
-        AllSongsSelected,       // table -> tree
-        SelectionChanged,       // selections -> ListTree
-    };
-}

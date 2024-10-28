@@ -20,12 +20,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 25.10.2024.
+// Created by Piotr Pszczółkowski on 28.10.2024.
 // piotr@beesoft.pl
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include "dirs_tree.h"
+#include "list_tree.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>
@@ -36,7 +36,7 @@
 #include <QTreeWidgetItemIterator>
 #include <fmt/core.h>
 
-DirsTree::DirsTree(QWidget* const parent) :
+ListTree::ListTree(QWidget* const parent) :
     QTreeWidget(parent),
     timer_{new QTimer}
 {
@@ -85,45 +85,50 @@ DirsTree::DirsTree(QWidget* const parent) :
         event::PartlySongsSelected);
 }
 
-DirsTree::~DirsTree() {
+ListTree::~ListTree() {
     EventController::self().remove(this);
 }
 
 // Handle my own events.
-void DirsTree::customEvent(QEvent* const event) {
+void ListTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
-    switch (int(e->type())) {
-    case event::AllSongsSelected:
-        if (auto const data = e->data(); !data.empty())
-            if (auto const item = item_for(data[0].toString()))
-                item->setCheckState(0, Qt::Checked);
-        break;
-    case event::NoSongsSelected:
-        if (auto const data = e->data(); !data.empty())
-            if (auto const item = item_for(data[0].toString()))
-                item->setCheckState(0, Qt::Unchecked);
-        break;
-    case event::PartlySongsSelected:
-        if (auto const data = e->data(); !data.empty())
-            if (auto const item = item_for(data[0].toString()))
-                item->setCheckState(0, Qt::PartiallyChecked);
-        break;
-    }
+    // switch (int(e->type())) {
+    // case event::AllSongsSelected:
+    //     if (auto const data = e->data(); !data.empty())
+    //         if (auto const item = item_for(data[0].toString()))
+    //             item->setCheckState(0, Qt::Checked);
+    //     break;
+    // case event::NoSongsSelected:
+    //     if (auto const data = e->data(); !data.empty())
+    //         if (auto const item = item_for(data[0].toString()))
+    //             item->setCheckState(0, Qt::Unchecked);
+    //     break;
+    // case event::PartlySongsSelected:
+    //     if (auto const data = e->data(); !data.empty())
+    //         if (auto const item = item_for(data[0].toString()))
+    //             item->setCheckState(0, Qt::PartiallyChecked);
+    //     break;
+    // }
 }
 
-void DirsTree::update_content(QString const& path) {
+void ListTree::update_content(QString const& path) {
     clear();
-    root_ = new QTreeWidgetItem(this);
-    root_->setText(0, "Performer");
-    root_->setData(0, ID, 0);
-    root_->setData(0, PID, -1);
-    root_->setData(0, PATH, path);
+    current_ = new QTreeWidgetItem(this);
+    current_->setText(0, "Current selections");
+    current_->setData(0, ID, -1);
+    current_->setData(0, PID, -1);
 
-    add_items_for(root_);
+
+    root_ = new QTreeWidgetItem(this);
+    root_->setText(0, "Playlists");
+    root_->setData(1, ID, 0);
+    root_->setData(0, PID, -1);
+
+    // add_items_for(root_);
     root_->setExpanded(true);
 }
 
-auto DirsTree::
+auto ListTree::
 add_items_for(QTreeWidgetItem* const parent)
 -> void {
     auto parent_path = parent->data(0, PATH).toString();
@@ -149,7 +154,7 @@ add_items_for(QTreeWidgetItem* const parent)
     }
 }
 
-auto DirsTree::
+auto ListTree::
 item_for(QString&& path) const
 -> QTreeWidgetItem* {
     QTreeWidgetItemIterator it(root_);

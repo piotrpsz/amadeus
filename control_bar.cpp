@@ -131,11 +131,11 @@ ControlBar::ControlBar(QWidget *parent) :
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
 
-    EventController::instance().append(this, event::SongOneShot);
+    EventController::self().append(this, event::SongOneShot);
 }
 
 ControlBar::~ControlBar() {
-    EventController::instance().remove(this);
+    EventController::self().remove(this);
 }
 
 void ControlBar::customEvent(QEvent* const event) {

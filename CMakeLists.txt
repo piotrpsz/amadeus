@@ -38,6 +38,9 @@ qt_add_executable(amadeus
         shared/event_controller.hh
         shared/event.hh
         model/selection.h
+        list_tree.h list_tree.cpp
+        list_files_table.cpp
+        list_files_table.h
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET amadeus APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

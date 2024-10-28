@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../shared/event.hh"
+#include "../shared/event_controller.hh"
 #include <unordered_set>
 #include <string>
 #include <QString>
@@ -19,9 +21,11 @@ public:
 
     void insert(QString const& path) noexcept {
         data_.insert(path.toStdString());
+        EventController::self().send(event::SelectionChanged);
     }
     void erase(QString const& path) noexcept {
         data_.erase(path.toStdString());
+        EventController::self().send(event::SelectionChanged);
     }
     bool contains(QString const& path) noexcept {
         return data_.contains(path.toStdString());
@@ -34,6 +38,7 @@ public:
     }
     void clear() noexcept {
         data_.clear();
+        EventController::self().send(event::SelectionChanged);
     }
 
 private:

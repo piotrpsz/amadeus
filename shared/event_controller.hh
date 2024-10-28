@@ -39,7 +39,7 @@ class EventController : public QObject {
     std::mutex mtx{};
     EventStore store{};
 public:
-    static EventController& instance() {
+    static EventController& self() {
         static EventController ec{};
         return ec;
     }

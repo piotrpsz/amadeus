@@ -20,48 +20,39 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 28.10.2024.
 // piotr@beesoft.pl
-
 #pragma once
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include <QEvent>
-#include <QVector>
-#include <QVariant>
+#include <QTreeWidget>
+#include <unordered_set>
 
-class Event : public QEvent {
-    QVector<QVariant> data_{};
+/*------- forward declarations:
+-------------------------------------------------------------------*/
+class QTimer;
+class QEvent;
+class QShowEvent;
+class QMouseEvent;
+class QTreeWidgetItem;
+
+
+class ListTree : public QTreeWidget {
+    Q_OBJECT
+    enum {ID = Qt::UserRole + 1, PID, PATH};
+    QTreeWidgetItem* root_{};
+    QTreeWidgetItem* current_{};
+    QTimer* const timer_;
+    std::unordered_set<QString> selections_{};
+
 public:
-    template<typename... T>
-    explicit Event(int const id, T... args) : QEvent(static_cast<QEvent::Type>(id)) {
-        (..., data_.push_back(args));
-    }
+    ListTree(QWidget* = nullptr);
+    ~ListTree();
 
-    QVector<QVariant> data() && {
-        return std::move(data_);
-    }
-    [[nodiscard]] QVector<QVariant> const& data() const& {
-        return data_;
-    }
+private:
+    void customEvent(QEvent*) override;
+    void update_content(QString const& path);
+    auto add_items_for(QTreeWidgetItem* parent) -> void;
+    QTreeWidgetItem* item_for(QString&& path) const;
 };
-
-namespace event {
-    enum {
-        None = (QEvent::User + 1),
-        PlaybackStarted,
-        PlaybackFinished,
-        PlaybackPaused,
-        PlaybackRestarted,
-        PlaybackPoition,
-
-        SongOneShot,            // table -> controller
-        DirSelected,            // tree -> table
-        CheckingAllSongs,       // tree -> table
-        NoSongsSelected,        // table -> tree
-        PartlySongsSelected,    // table -> tree
-        AllSongsSelected,       // table -> tree
-        SelectionChanged,       // selections -> ListTree
-    };
-}
