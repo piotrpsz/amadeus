@@ -34,15 +34,15 @@ qt_add_executable(amadeus
         workspace.h workspace.cpp
         control_bar.h control_bar.cpp
         catalog.h catalog.cpp
-        play_list.h play_list.cpp
+        playlist.h playlist.cpp
         dirs_tree.h dirs_tree.cpp
         files_table.h files_table.cpp
         shared/event_controller.hh
         shared/event.hh
         model/selection.h
-        list_tree.h list_tree.cpp
-        list_files_table.cpp
-        list_files_table.h
+        playlist_tree.h playlist_tree.cpp
+        playlist_table.cpp
+        playlist_table.h
         sqlite/field.cc sqlite/field.h
 
         sqlite/gzip.h

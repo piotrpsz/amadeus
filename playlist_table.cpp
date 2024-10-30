@@ -26,7 +26,7 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include "model/selection.h"
-#include "list_files_table.h"
+#include "playlist_table.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>
@@ -41,7 +41,7 @@
 #include <QContextMenuEvent>
 #include <fmt/core.h>
 
-ListFilesTable::ListFilesTable(QWidget* const parent) : QTableWidget(parent) {
+PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
     setRowCount(0);
     setColumnCount(1);
     setEditTriggers(NoEditTriggers);
@@ -75,11 +75,11 @@ ListFilesTable::ListFilesTable(QWidget* const parent) : QTableWidget(parent) {
     update_content();
 }
 
-ListFilesTable::~ListFilesTable() {
+PlayListTable::~PlayListTable() {
     EventController::self().remove(this);
 }
 
-void ListFilesTable::contextMenuEvent(QContextMenuEvent* const event) {
+void PlayListTable::contextMenuEvent(QContextMenuEvent* const event) {
     auto const menu = new QMenu(this);
     auto const check_all_action = menu->addAction("Select all");
     auto const uncheck_all_action = menu->addAction("Unselect all");
@@ -125,18 +125,18 @@ void ListFilesTable::contextMenuEvent(QContextMenuEvent* const event) {
     delete menu;
 }
 
-void ListFilesTable::showEvent(QShowEvent* event) {
+void PlayListTable::showEvent(QShowEvent* event) {
     update_content();
 }
 
-void ListFilesTable::mousePressEvent(QMouseEvent* const event) {
+void PlayListTable::mousePressEvent(QMouseEvent* const event) {
     if (event->button() == Qt::RightButton)
         return;
     QTableWidget::mousePressEvent(event);
 }
 
 // Handle my own events.
-void ListFilesTable::customEvent(QEvent* const event) {
+void PlayListTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
 
@@ -169,7 +169,7 @@ void ListFilesTable::customEvent(QEvent* const event) {
     }
 }
 
-void ListFilesTable::new_content_for(QString&& path) {
+void PlayListTable::new_content_for(QString&& path) {
     QDir const dir{path};
     auto const info_list = dir.entryInfoList();
 
@@ -199,7 +199,7 @@ void ListFilesTable::new_content_for(QString&& path) {
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
-void ListFilesTable::update_content() noexcept {
+void PlayListTable::update_content() noexcept {
     clear_content();
 
     int row{};
@@ -214,7 +214,7 @@ void ListFilesTable::update_content() noexcept {
 
 }
 
-void ListFilesTable::update_parent() const noexcept {
+void PlayListTable::update_parent() const noexcept {
     if (are_all_unchecked())
         EventController::self().send(event::NoSongsSelected, dir_);
     else if (are_all_checked())
@@ -223,7 +223,7 @@ void ListFilesTable::update_parent() const noexcept {
         EventController::self().send(event::PartlySongsSelected, dir_);
 }
 
-bool ListFilesTable::are_all_checked() const noexcept {
+bool PlayListTable::are_all_checked() const noexcept {
     auto const n = rowCount();
     for (auto i = 0; i < n; ++i)
         if (item(i, 0)->checkState() != Qt::Checked)
@@ -231,12 +231,10 @@ bool ListFilesTable::are_all_checked() const noexcept {
     return true;
 }
 
-bool ListFilesTable::are_all_unchecked() const noexcept {
+bool PlayListTable::are_all_unchecked() const noexcept {
     auto const n = rowCount();
     for (auto i = 0; i < n; ++i)
         if (item(i, 0)->checkState() != Qt::Unchecked)
             return false;
     return true;
 }
-
-

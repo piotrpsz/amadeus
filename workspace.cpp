@@ -1,6 +1,6 @@
 #include "workspace.h"
 #include "catalog.h"
-#include "play_list.h"
+#include "playlist.h"
 #include <QSlider>
 
 Workspace::Workspace(QWidget* const parent) :

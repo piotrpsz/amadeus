@@ -1,6 +1,6 @@
-#include "play_list.h"
-#include "list_tree.h"
-#include "list_files_table.h"
+#include "playlist.h"
+#include "playlist_tree.h"
+#include "playlist_table.h"
 #include <QSplitter>
 #include <QVBoxLayout>
 
@@ -8,8 +8,8 @@
 
 PlayList::PlayList(QWidget *parent) : QWidget{parent},
     splitter_{new QSplitter{Qt::Horizontal}},
-    lists_{new ListTree},
-    files_{new ListFilesTable}
+    lists_{new PlayListTree},
+    files_{new PlayListTable}
 {
     splitter_->setHandleWidth(SPLITTER_HANDLE_WIDTH);
     splitter_->addWidget(lists_);

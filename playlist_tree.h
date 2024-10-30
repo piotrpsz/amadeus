@@ -22,42 +22,40 @@
 //
 // Created by Piotr Pszczółkowski on 28.10.2024.
 // piotr@beesoft.pl
-
 #pragma once
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include <QTableWidget>
+#include <QTreeWidget>
+#include <unordered_set>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
+class QTimer;
 class QEvent;
 class QShowEvent;
 class QMouseEvent;
+class QTreeWidgetItem;
 class QContextMenuEvent;
 
 
-class ListFilesTable : public QTableWidget {
+class PlayListTree : public QTreeWidget {
     Q_OBJECT
-    enum {PATH = Qt::UserRole + 1, DIR};
-    QString dir_{};
+    enum {ID = Qt::UserRole + 1, PID, PATH};
+    QTreeWidgetItem* root_{};
+    QTreeWidgetItem* current_{};
+    QTimer* const timer_;
+    std::unordered_set<QString> selections_{};
+
 public:
-    ListFilesTable(QWidget* = nullptr);
-    ~ListFilesTable();
+    PlayListTree(QWidget* = nullptr);
+    ~PlayListTree();
+
 private:
-    void showEvent(QShowEvent*) override;
-    void mousePressEvent(QMouseEvent*) override;
     void contextMenuEvent(QContextMenuEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
     void customEvent(QEvent*) override;
-    void new_content_for(QString&& path);
-
-    void clear_content() noexcept {
-        clearContents();
-        setRowCount(0);
-    }
-
-    void update_content() noexcept;
-    void update_parent() const noexcept;
-    bool are_all_checked() const noexcept;
-    bool are_all_unchecked() const noexcept;
+    void update_content();
+    auto add_items_for(QTreeWidgetItem* parent) -> void;
+    QTreeWidgetItem* item_for(QString&& path) const;
 };

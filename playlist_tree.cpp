@@ -25,18 +25,19 @@
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include "list_tree.h"
+#include "playlist_tree.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>
 #include <QTimer>
 #include <QFileInfo>
 #include <QHeaderView>
+#include <QMouseEvent>
 #include <QTreeWidgetItem>
 #include <QTreeWidgetItemIterator>
 #include <fmt/core.h>
 
-ListTree::ListTree(QWidget* const parent) :
+PlayListTree::PlayListTree(QWidget* const parent) :
     QTreeWidget(parent),
     timer_{new QTimer}
 {
@@ -79,16 +80,29 @@ ListTree::ListTree(QWidget* const parent) :
     update_content();
     setCurrentItem(current_);
 
-    // EventController::self().append(this,
-        // event::SelectionChanged);
+    EventController::self().append(this,
+        event::None);
 }
 
-ListTree::~ListTree() {
-    // EventController::self().remove(this);
+void PlayListTree::contextMenuEvent(QContextMenuEvent* const event) {
+    fmt::print(stderr, "context menu\n");
+    // auto const menu = new QMenu(this);
+}
+
+void PlayListTree::mousePressEvent(QMouseEvent* const event) {
+    if (event->button() == Qt::RightButton) {
+        fmt::print(stderr, "right mouse button\n");
+        return;
+    }
+    QTreeWidget::mousePressEvent(event);
+}
+
+PlayListTree::~PlayListTree() {
+    EventController::self().remove(this);
 }
 
 // Handle my own events.
-void ListTree::customEvent(QEvent* const event) {
+void PlayListTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
     case event::SelectionChanged:
@@ -97,7 +111,7 @@ void ListTree::customEvent(QEvent* const event) {
     }
 }
 
-void ListTree::update_content() {
+void PlayListTree::update_content() {
     clear();
     current_ = new QTreeWidgetItem(this);
     current_->setText(0, "Current selections");
@@ -114,7 +128,7 @@ void ListTree::update_content() {
     root_->setExpanded(true);
 }
 
-auto ListTree::
+auto PlayListTree::
 add_items_for(QTreeWidgetItem* const parent)
 -> void {
     auto parent_path = parent->data(0, PATH).toString();
@@ -140,7 +154,7 @@ add_items_for(QTreeWidgetItem* const parent)
     }
 }
 
-auto ListTree::
+auto PlayListTree::
 item_for(QString&& path) const
 -> QTreeWidgetItem* {
     QTreeWidgetItemIterator it(root_);
