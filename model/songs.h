@@ -18,7 +18,7 @@ class Song {
         },
         {
         R"(
-            CREATE UNIQUE INDEX pid_name ON songs(pid, path);
+            CREATE UNIQUE INDEX pid_path ON song(pid, path);
         )"
         }
     };
