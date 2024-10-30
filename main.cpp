@@ -6,7 +6,7 @@
 #include <fmt/core.h>
 #include "mainwindow.h"
 #include "model/playlist.h"
-#include "model/songs.h"
+#include "model/song.h"
 #include "tool.h"
 
 bool create_commands(SQLite const& db) {

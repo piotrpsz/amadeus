@@ -26,7 +26,7 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include "model/selection.h"
-#include "files_table.h"
+#include "catalog_table.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>

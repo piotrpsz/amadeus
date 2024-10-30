@@ -28,8 +28,12 @@
 #include "playlist_tree.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
+#include "model/selection.h"
+#include <memory>
 #include <QDir>
+#include <QMenu>
 #include <QTimer>
+#include <QAction>
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMouseEvent>
@@ -84,16 +88,37 @@ PlayListTree::PlayListTree(QWidget* const parent) :
         event::None);
 }
 
+// Context menu call.
 void PlayListTree::contextMenuEvent(QContextMenuEvent* const event) {
-    fmt::print(stderr, "context menu\n");
-    // auto const menu = new QMenu(this);
+    auto const item = currentItem();
+    if (item == nullptr || item == root_) return;
+    if (item == current_ && Selection::self().empty()) return;
+
+    auto const menu = std::make_shared<QMenu>(this);
+    auto const play_action = menu->addAction("Play");
+    connect(play_action, &QAction::triggered, this, [this](auto _) {
+        EventController::self().send(event::StartSelectedPlayback);
+    });
+    if (item == current_) {
+        auto const create_playlist = menu->addAction("Create a playlist from selected songs");
+        connect(create_playlist, &QAction::triggered, this, [this](auto _) {
+            fmt::print(stderr, "create action\n");
+        });
+    }
+    else {
+        auto const rename_playlist = menu->addAction("Change playlist name");
+        connect(rename_playlist, &QAction::triggered, this, [this](auto _) {
+            fmt::print(stderr, "rename action\n");
+        });
+    }
+    menu->exec(event->globalPos());
 }
 
 void PlayListTree::mousePressEvent(QMouseEvent* const event) {
-    if (event->button() == Qt::RightButton) {
-        fmt::print(stderr, "right mouse button\n");
-        return;
-    }
+    // if (event->button() == Qt::RightButton) {
+    //     fmt::print(stderr, "right mouse button\n");
+    //     return;
+    // }
     QTreeWidget::mousePressEvent(event);
 }
 

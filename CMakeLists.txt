@@ -35,8 +35,8 @@ qt_add_executable(amadeus
         control_bar.h control_bar.cpp
         catalog.h catalog.cpp
         playlist.h playlist.cpp
-        dirs_tree.h dirs_tree.cpp
-        files_table.h files_table.cpp
+        catalog_tree.h catalog_tree.cpp
+        catalog_table.h catalog_table.cpp
         shared/event_controller.hh
         shared/event.hh
         model/selection.h
@@ -56,7 +56,7 @@ qt_add_executable(amadeus
         sqlite/types.h
         sqlite/value.cc sqlite/value.h
         model/playlist.h model/playlist.cpp
-        model/songs.h model/songs.cpp
+        model/song.h model/song.cpp
 )
 
 

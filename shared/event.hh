@@ -55,6 +55,7 @@ namespace event {
         PlaybackPaused,
         PlaybackRestarted,
         PlaybackPoition,
+        StartSelectedPlayback,
 
         SongOneShot,            // table -> controller
         DirSelected,            // tree -> table

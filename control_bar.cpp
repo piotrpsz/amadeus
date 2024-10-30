@@ -4,6 +4,7 @@
 #include "control_bar.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
+#include "model/selection.h"
 #include <QUrl>
 #include <QDir>
 #include <QIcon>
@@ -52,7 +53,20 @@ ControlBar::ControlBar(QWidget *parent) :
     player_->setAudioOutput(audio_output_);
     connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
         // TODO handle changed position
-        // fmt::print(stderr, "{}\n", pos);
+        fmt::print(stderr, "{}\n", pos);
+    });
+    connect(player_, &QMediaPlayer::mediaStatusChanged, this, [this](auto status) {
+        switch (status) {
+        case QMediaPlayer::EndOfMedia:
+            if (!songs_.empty()) {
+                ++idx;
+                if (idx < songs_.size())
+                    set_song(QString::fromStdString(songs_[idx]));
+            }
+            break;
+        default:
+        {}
+        }
     });
 
     connect(audio_output_, &QAudioOutput::volumeChanged, this, [this] (double volume) {
@@ -131,7 +145,9 @@ ControlBar::ControlBar(QWidget *parent) :
     layout->setContentsMargins(0, 0, 0, 0);
     setLayout(layout);
 
-    EventController::self().append(this, event::SongOneShot);
+    EventController::self().append(this,
+        event::SongOneShot,
+        event::StartSelectedPlayback);
 }
 
 ControlBar::~ControlBar() {
@@ -149,10 +165,16 @@ void ControlBar::customEvent(QEvent* const event) {
             player_->play();
         }
         break;
+    case event::StartSelectedPlayback:
+        songs_ = Selection::self().to_vector();
+        idx = 0;
+        set_song(QString::fromStdString(songs_[idx]));
+        break;
     }
 }
 
 void ControlBar::set_song(QString const& path) noexcept {
+    fmt::print(stderr, "play {}\n", path.toStdString());
     auto items = path.split(QDir::separator());
     if (items.size() < 4)
         return;
@@ -180,6 +202,7 @@ void ControlBar::set_song(QString const& path) noexcept {
 
     // Set player.
     player_->setSource(QUrl::fromLocalFile(path));
+    player_->play();
 }
 
 void ControlBar::playback_changed() const noexcept {

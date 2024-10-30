@@ -40,6 +40,8 @@ class ControlBar : public QWidget {
     bool played_{};
     bool muted_{};
     QString song_path_{};
+    std::vector<std::string> songs_{};
+    int idx = -1;
 public:
     explicit ControlBar(QWidget *parent = nullptr);
     ~ControlBar();

@@ -1,6 +1,6 @@
 #include "catalog.h"
-#include "dirs_tree.h"
-#include "files_table.h"
+#include "catalog_tree.h"
+#include "catalog_table.h"
 #include <QSplitter>
 #include <QSplitter>
 #include <QShowEvent>

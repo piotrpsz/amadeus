@@ -25,7 +25,7 @@
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include "dirs_tree.h"
+#include "catalog_tree.h"
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include <QDir>

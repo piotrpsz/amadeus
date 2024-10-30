@@ -41,6 +41,13 @@ public:
         data_.clear();
         EventController::self().send(event::SelectionChanged);
     }
+    std::vector<std::string> to_vector() {
+        std::vector<std::string> songs{};
+        songs.reserve(data_.size());
+        for (auto const& it : data_)
+            songs.push_back(it);
+        return songs;
+    }
 
     using iterator = std::set<std::string>::iterator;
     using const_iterator = std::set<std::string>::const_iterator;
