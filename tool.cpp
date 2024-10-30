@@ -1,4 +1,4 @@
-#include "shared.h"
+#include "tool.h"
 #include <QWidget>
 #include <QApplication>
 #include <QScreen>
@@ -8,7 +8,7 @@
 -------------------------------------------------------------------*/
 
 
-void shared::resize(QWidget* const widget, int const width, int const height) {
+void tool::resize(QWidget* const widget, int const width, int const height) {
     auto const screen = widget->window()->screen();
     auto const screen_width = screen->availableSize().rwidth();
     auto const screen_height = screen->availableSize().rheight();
