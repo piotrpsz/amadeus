@@ -12,6 +12,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Multimedia LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia LinguistTools)
 find_package(fmt REQUIRED)
+find_package(Boost REQUIRED)
+find_package(date REQUIRED)
+find_package(range-v3 REQUIRED)
 
 set(TS_FILES amadeus_pl_PL.ts)
 
@@ -27,7 +30,7 @@ qt_add_executable(amadeus
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
         resources.qrc
-        shared.h shared.cpp
+        tool.h tool.cpp
         workspace.h workspace.cpp
         control_bar.h control_bar.cpp
         catalog.h catalog.cpp
@@ -40,11 +43,30 @@ qt_add_executable(amadeus
         list_tree.h list_tree.cpp
         list_files_table.cpp
         list_files_table.h
+        sqlite/field.cc sqlite/field.h
+
+        sqlite/gzip.h
+        sqlite/logger.h
+        sqlite/query.cc sqlite/query.h
+        sqlite/result.cc sqlite/result.h
+        sqlite/row.cc sqlite/row.h
+        sqlite/shared.h
+        sqlite/sqlite.cpp sqlite/sqlite.h
+        sqlite/stmt.cpp sqlite/stmt.h
+        sqlite/types.h
+        sqlite/value.cc sqlite/value.h
+        model/playlist.h model/playlist.cpp
+        model/songs.h model/songs.cpp
 )
 
 
 target_link_libraries(amadeus PRIVATE
+    z
+    sqlite3
+    libboost_iostreams.a
     fmt::fmt
+    date::date date::date-tz
+    range-v3::meta range-v3::concepts range-v3::range-v3
     Qt6::Widgets
     Qt6::Multimedia
 )

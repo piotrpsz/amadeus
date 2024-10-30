@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include "control_bar.h"
 #include "workspace.h"
-#include "shared.h"
+#include "tool.h"
 #include <QIcon>
 #include <QMenu>
 #include <QAction>
@@ -30,7 +30,7 @@ Window::Window(): QDialog(),
     play_action_{new QAction("Play")},
     pause_action_{new QAction("Pause")}
 {
-    setWindowTitle(shared::app_complete_name());
+    setWindowTitle(tool::app_complete_name());
 
     connect(minimize_action_, &QAction::triggered, this, &QWidget::hide);
     connect(maximize_action_, &QAction::triggered, this, &QWidget::showMaximized);
@@ -71,7 +71,7 @@ Window::Window(): QDialog(),
     setLayout(main_layout);
 
     tray_->show();
-    shared::resize(this, 60, 60);
+    tool::resize(this, 60, 60);
 }
 
 void Window::setVisible(bool const visible) {
@@ -91,7 +91,7 @@ void Window::closeEvent(QCloseEvent* const event) {
         if (first_time_) {
             // this message is displayed only one time (when starting the app)
             first_time_ = false;
-            QMessageBox::information(this, shared::PROGRAM,
+            QMessageBox::information(this, tool::PROGRAM,
                                 "The program will keep running in the "
                                 "system tray. To terminate the program, "
                                 "choose <b>Quit</b> in the context menu "
