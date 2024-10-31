@@ -70,7 +70,9 @@ PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
     });
 
     EventController::self()
-        .append(this, event::SelectionChanged);
+        .append(this,
+                event::SelectionChanged,
+                event::SongPlayed);
 
     update_content();
 }
@@ -135,7 +137,12 @@ void PlayListTable::mousePressEvent(QMouseEvent* const event) {
     QTableWidget::mousePressEvent(event);
 }
 
-// Handle my own events.
+/********************************************************************
+ *                                                                  *
+ *                  c u s t o m E v e n t                           *
+ *                                                                  *
+ *******************************************************************/
+
 void PlayListTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
@@ -164,6 +171,13 @@ void PlayListTable::customEvent(QEvent* const event) {
                 else
                     Selection::self().erase(row->data(PATH).toString());
             }
+        }
+        break;
+
+    case event::SongPlayed:
+        if (auto const data = e->data(); !data.empty()) {
+            if (auto const it = item_for(data[0].toString()))
+                setCurrentItem(it);
         }
         break;
     }
@@ -197,6 +211,18 @@ void PlayListTable::new_content_for(QString&& path) {
         setItem(row++, 0, item);
     });
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+}
+
+auto PlayListTable::item_for(QString&& path) const noexcept
+    -> QTableWidgetItem*
+{
+    auto const n = rowCount();
+    for (auto i = 0; i < n; ++i) {
+        auto it = item(i, 0);
+        if (path == it->data(PATH).toString())
+            return it;
+    }
+    return {};
 }
 
 void PlayListTable::update_content() noexcept {

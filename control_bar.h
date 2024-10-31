@@ -39,13 +39,16 @@ class ControlBar : public QWidget {
 
     bool played_{};
     bool muted_{};
+    bool one_shot_{};
     QString song_path_{};
     std::vector<std::string> songs_{};
-    int idx = -1;
+    int idx_ = -1;
 public:
     explicit ControlBar(QWidget *parent = nullptr);
     ~ControlBar();
 private:
+    void play_next() noexcept;
+    void play_prev() noexcept;
     void set_song(QString const& path) noexcept;
     void playback_changed() const noexcept;
     void customEvent(QEvent*) override;

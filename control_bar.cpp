@@ -38,7 +38,7 @@ ControlBar::ControlBar(QWidget *parent) :
 {
     title_->setToolTipDuration(DEFAULT_TIP_DURATION);
 
-    // sound volume slider settings
+    // Sound volume slider settings
     sound_slide_->setMinimum(0);
     sound_slide_->setMaximum(100);
     sound_slide_->setToolTip("volume level");
@@ -53,16 +53,16 @@ ControlBar::ControlBar(QWidget *parent) :
     player_->setAudioOutput(audio_output_);
     connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
         // TODO handle changed position
-        fmt::print(stderr, "{}\n", pos);
+        // fmt::print(stderr, "{}\n", pos);
     });
     connect(player_, &QMediaPlayer::mediaStatusChanged, this, [this](auto status) {
         switch (status) {
         case QMediaPlayer::EndOfMedia:
-            if (!songs_.empty()) {
-                ++idx;
-                if (idx < songs_.size())
-                    set_song(QString::fromStdString(songs_[idx]));
+            if (one_shot_) {
+                one_shot_ = !one_shot_;
+                songs_.clear();
             }
+            play_next();
             break;
         default:
         {}
@@ -107,17 +107,19 @@ ControlBar::ControlBar(QWidget *parent) :
     skip_backward_btn->setFlat(true);
     skip_backward_btn->setToolTip("play previous");
     skip_backward_btn->setToolTipDuration(DEFAULT_TIP_DURATION);
+    connect(skip_backward_btn, &QPushButton::clicked, this, [this] (auto _) {
+        play_prev();
+    });
 
     auto const skip_forward_btn = new QPushButton(style()->standardIcon(QStyle::SP_MediaSkipForward), "");
     skip_forward_btn->setFlat(true);
     skip_forward_btn->setToolTip("play next");
     skip_forward_btn->setToolTipDuration(DEFAULT_TIP_DURATION);
+    connect(skip_forward_btn, &QPushButton::clicked, this, [this] (auto _) {
+        play_next();
+    });
 
-    // Sound slider settings.
-    // sound_slide_->setMinimum(0);
-    // sound_slide_->setMaximum(100);
-    // sound_slide_->setToolTip("volume level");
-    // sound_slide_->setToolTipDuration(DEFAULT_TIP_DURATION);
+
 
     // Lyout with buttons to manage playback.
     auto const play_layout = new QHBoxLayout;
@@ -154,27 +156,68 @@ ControlBar::~ControlBar() {
     EventController::self().remove(this);
 }
 
+/********************************************************************
+ *                                                                  *
+ *                  c u s t o m E v e n t                           *
+ *                                                                  *
+ *******************************************************************/
+
 void ControlBar::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
     case event::SongOneShot:
         if (auto const data = e->data(); !data.empty()) {
+            one_shot_ = true;
             set_song(data[0].toString());
-            played_ = true;
-            playback_changed();
-            player_->play();
         }
         break;
     case event::StartSelectedPlayback:
         songs_ = Selection::self().to_vector();
-        idx = 0;
-        set_song(QString::fromStdString(songs_[idx]));
+        idx_ = 0;
+        set_song(QString::fromStdString(songs_[idx_]));
         break;
     }
 }
 
+/********************************************************************
+ *                                                                  *
+ *                      p l a y _ n e x t                           *
+ *                                                                  *
+ *******************************************************************/
+
+void ControlBar::play_next() noexcept {
+    if (songs_.empty())
+        return;
+
+    if ((idx_ + 1) < songs_.size()) {
+        auto path = QString::fromStdString(songs_[++idx_]);
+        set_song(path);
+    }
+}
+
+/********************************************************************
+ *                                                                  *
+ *                      p l a y _ p r e v                           *
+ *                                                                  *
+ *******************************************************************/
+
+void ControlBar::play_prev() noexcept {
+    if (songs_.empty())
+        return;
+
+    if((idx_ - 1) >= 0) {
+        auto path = QString::fromStdString(songs_[--idx_]);
+        set_song(path);
+    }
+}
+
+/********************************************************************
+ *                                                                  *
+ *                      p l a y _ s o n g                           *
+ *                                                                  *
+ *******************************************************************/
+
 void ControlBar::set_song(QString const& path) noexcept {
-    fmt::print(stderr, "play {}\n", path.toStdString());
     auto items = path.split(QDir::separator());
     if (items.size() < 4)
         return;
@@ -203,6 +246,9 @@ void ControlBar::set_song(QString const& path) noexcept {
     // Set player.
     player_->setSource(QUrl::fromLocalFile(path));
     player_->play();
+    played_ = true;
+    playback_changed();
+    EventController::self().send(event::SongPlayed, path);
 }
 
 void ControlBar::playback_changed() const noexcept {

@@ -56,6 +56,7 @@ namespace event {
         PlaybackRestarted,
         PlaybackPoition,
         StartSelectedPlayback,
+        SongPlayed,             // zaczęto odtwarzać piosenkę.
 
         SongOneShot,            // table -> controller
         DirSelected,            // tree -> table

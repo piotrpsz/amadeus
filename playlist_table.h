@@ -60,4 +60,5 @@ private:
     void update_parent() const noexcept;
     bool are_all_checked() const noexcept;
     bool are_all_unchecked() const noexcept;
+    QTableWidgetItem* item_for(QString&& path) const noexcept;
 };
