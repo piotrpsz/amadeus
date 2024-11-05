@@ -47,12 +47,16 @@ FilesTable::FilesTable(QWidget* const parent) : QTableWidget(parent) {
     setSelectionBehavior(SelectRows);
     setHorizontalHeaderItem(0, new QTableWidgetItem("Title"));
 
+    // When user double-clicked the row we play this song (one-shot).
     connect(this, &QTableWidget::cellDoubleClicked, [&] (auto const row, auto const col){
         if (auto const selected_item = item(row, 0)) {
             auto const path = selected_item->data(PATH).toString();
             EventController::self().send(event::SongOneShot, path);
         }
     });
+
+    // When user clicked the row it bekome current row.
+    // But important is checking is the row is checked.
     connect(this, &QTableWidget::itemClicked, this, [this] (QTableWidgetItem* const item) {
         if (item) {
             auto checked = item->checkState();
@@ -141,7 +145,6 @@ void FilesTable::customEvent(QEvent* const event) {
             dir_ = dir;
             clear_content();
             new_content_for(std::move(dir));
-
         }
         break;
 
@@ -163,6 +166,7 @@ void FilesTable::customEvent(QEvent* const event) {
     }
 }
 
+/// New table content (new songs) for new selected directory.
 void FilesTable::new_content_for(QString&& path) {
     QDir const dir{path};
     auto const info_list = dir.entryInfoList();

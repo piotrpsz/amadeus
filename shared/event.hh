@@ -58,7 +58,8 @@ namespace event {
         StartSelectedPlayback,
         SongPlayed,             // zaczęto odtwarzać piosenkę.
 
-        SongOneShot,            // table -> controller
+        SongOneShot,            // content table -> controller
+        SongShot,               // list table -> controller
         DirSelected,            // tree -> table
         CheckingAllSongs,       // tree -> table
         NoSongsSelected,        // table -> tree

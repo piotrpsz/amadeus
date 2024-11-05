@@ -58,10 +58,6 @@ ControlBar::ControlBar(QWidget *parent) :
     connect(player_, &QMediaPlayer::mediaStatusChanged, this, [this](auto status) {
         switch (status) {
         case QMediaPlayer::EndOfMedia:
-            if (one_shot_) {
-                one_shot_ = !one_shot_;
-                songs_.clear();
-            }
             play_next();
             break;
         default:
@@ -119,8 +115,6 @@ ControlBar::ControlBar(QWidget *parent) :
         play_next();
     });
 
-
-
     // Lyout with buttons to manage playback.
     auto const play_layout = new QHBoxLayout;
     play_layout->addWidget(skip_backward_btn);
@@ -167,8 +161,17 @@ void ControlBar::customEvent(QEvent* const event) {
     switch (int(e->type())) {
     case event::SongOneShot:
         if (auto const data = e->data(); !data.empty()) {
+            auto const path = data[0].toString();
             one_shot_ = true;
-            set_song(data[0].toString());
+            // A song was selected from the collection.
+            if (auto idx = song_idx(path); idx != -1) {
+                idx_ = idx;
+                set_song(QString::fromStdString(songs_[idx_]));
+                return;
+            }
+            // Aa song from outside the collection was selected
+            if (played_) saved_idx = idx_;
+            set_song(path);
         }
         break;
     case event::StartSelectedPlayback:
@@ -188,6 +191,12 @@ void ControlBar::customEvent(QEvent* const event) {
 void ControlBar::play_next() noexcept {
     if (songs_.empty())
         return;
+
+    if (saved_idx > -1) {
+        idx_ = saved_idx;
+        set_song(QString::fromStdString(songs_[idx_]));
+        return;
+    }
 
     if ((idx_ + 1) < songs_.size()) {
         auto path = QString::fromStdString(songs_[++idx_]);

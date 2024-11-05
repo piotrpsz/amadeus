@@ -29,6 +29,7 @@
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include "model/selection.h"
+#include "line_text_edit.h"
 #include <memory>
 #include <QDir>
 #include <QMenu>
@@ -102,7 +103,9 @@ void PlayListTree::contextMenuEvent(QContextMenuEvent* const event) {
     if (item == current_) {
         auto const create_playlist = menu->addAction("Create a playlist from selected songs");
         connect(create_playlist, &QAction::triggered, this, [this](auto _) {
-            fmt::print(stderr, "create action\n");
+            auto const dialog = new LineTextEdit("Plylist: ");
+            dialog->exec();
+
         });
     }
     else {

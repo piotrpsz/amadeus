@@ -6,7 +6,7 @@ set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Multimedia LinguistTools)
@@ -57,6 +57,7 @@ qt_add_executable(amadeus
         sqlite/value.cc sqlite/value.h
         model/playlist.h model/playlist.cpp
         model/song.h model/song.cpp
+        line_text_edit.h line_text_edit.cpp
 )
 
 

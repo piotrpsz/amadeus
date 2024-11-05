@@ -52,7 +52,7 @@ PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
     connect(this, &QTableWidget::cellDoubleClicked, [&] (auto const row, auto const col){
         if (auto const selected_item = item(row, 0)) {
             auto const path = selected_item->data(PATH).toString();
-            EventController::self().send(event::SongOneShot, path);
+            EventController::self().send(event::SongShot, path);
         }
     });
     connect(this, &QTableWidget::itemClicked, this, [this] (QTableWidgetItem* const item) {

@@ -43,6 +43,7 @@ class ControlBar : public QWidget {
     QString song_path_{};
     std::vector<std::string> songs_{};
     int idx_ = -1;
+    int saved_idx = -1;
 public:
     explicit ControlBar(QWidget *parent = nullptr);
     ~ControlBar();
@@ -52,5 +53,13 @@ private:
     void set_song(QString const& path) noexcept;
     void playback_changed() const noexcept;
     void customEvent(QEvent*) override;
+
+    int song_idx(QString const& qpath) const noexcept {
+        auto const path =qpath.toStdString();
+        for (auto i = 0; i < songs_.size(); ++i)
+            if (songs_[i] == path)
+                return i;
+        return -1;
+    }
 };
 
