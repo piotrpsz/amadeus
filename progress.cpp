@@ -27,6 +27,7 @@
 -------------------------------------------------------------------*/
 #include "progress.h"
 #include "shared/event_controller.hh"
+#include <format>
 #include <QLabel>
 #include <QSlider>
 #include <QHBoxLayout>
@@ -43,6 +44,11 @@ Progress::Progress(QWidget *parent)
     slider_->setMaximum(1000);
     slider_->setValue(0);
     slider_->setSingleStep(1);
+    slider_->setToolTip("Song playback progress");
+    slider_->setToolTipDuration(3000);
+    connect(slider_, &QSlider::sliderMoved, this, [](auto value) {
+        EventController::self().send(event::SongReprogress, value);
+    });
 
     auto const main = new QHBoxLayout;
     main->addWidget(passed_);
@@ -66,7 +72,7 @@ void Progress::customEvent(QEvent* const event) {
             auto const max = data[0].toULongLong();
 
             passed_->setText("0s");
-            left_->setText(QString("%1s").arg(max/1000));
+            left_->setText(format_time(max));
             slider_->setMaximum(max);
             slider_->setMinimum(0);
             slider_->setValue(0);
@@ -76,11 +82,20 @@ void Progress::customEvent(QEvent* const event) {
     case event::SongProgress:
         if (auto const data = e->data(); data.size() == 1) {
             auto const position = data[0].toULongLong();
-            passed_->setText(QString("%1s").arg(position/1000));
-            left_->setText(QString("%1s").arg((slider_->maximum() - position)/1000));
+            passed_->setText(format_time(position));
+            left_->setText(format_time(slider_->maximum() - position));
             slider_->setValue(position);
         }
         break;
     }
 }
 
+QString Progress::format_time(qint64 ms) noexcept {
+    if (auto sec = ms / 1000) {
+        if (auto min = sec / 60) {
+            return QString::fromStdString(format("{:02}:{:02}", min, sec % 60));
+        }
+        return QString::fromStdString(format("{:02}:{:02}", 0, sec));
+    }
+    return QString("0s");
+}

@@ -43,4 +43,5 @@ public:
     ~Progress();
 private:
     void customEvent(QEvent*) override;
+    static QString format_time(qint64) noexcept;
 };

@@ -158,7 +158,8 @@ ControlBar::ControlBar(QWidget *parent) :
     EventController::self().append(this,
         event::SongShot,
         event::SongOneShot,
-        event::StartSelectedPlayback);
+        event::StartSelectedPlayback,
+        event::SongReprogress);
 }
 
 ControlBar::~ControlBar() {
@@ -196,6 +197,13 @@ void ControlBar::customEvent(QEvent* const event) {
             // Aa song from outside the collection was selected
             if (played_) saved_idx = idx_;
             set_song(path);
+        }
+        break;
+    case event::SongReprogress:
+        if (auto const data = e->data(); !data.empty()) {
+            auto const position = data[0].toULongLong();
+            if (played_)
+                player_->setPosition(position);
         }
         break;
     case event::StartSelectedPlayback:

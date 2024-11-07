@@ -58,6 +58,7 @@ namespace event {
         SongPlayed,             // zaczęto odtwarzać piosenkę.
         SongRange,
         SongProgress,
+        SongReprogress,
 
         SongOneShot,            // content table -> controller
         SongShot,               // list table -> controller
