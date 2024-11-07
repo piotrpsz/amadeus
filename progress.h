@@ -20,52 +20,27 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 7.11.2024.
 // piotr@beesoft.pl
-
 #pragma once
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include <QEvent>
-#include <QVector>
-#include <QVariant>
+#include <QWidget>
 
-class Event : public QEvent {
-    QVector<QVariant> data_{};
+/*------- forward declarations:
+-------------------------------------------------------------------*/
+class QLabel;
+class QSlider;
+
+class Progress : public QWidget {
+    Q_OBJECT
+    QSlider* const slider_;
+    QLabel* const passed_;
+    QLabel* const left_;
 public:
-    template<typename... T>
-    explicit Event(int const id, T... args) : QEvent(static_cast<QEvent::Type>(id)) {
-        (..., data_.push_back(args));
-    }
-
-    QVector<QVariant> data() && {
-        return std::move(data_);
-    }
-    [[nodiscard]] QVector<QVariant> const& data() const& {
-        return data_;
-    }
+    explicit Progress(QWidget* = nullptr);
+    ~Progress();
+private:
+    void customEvent(QEvent*) override;
 };
-
-namespace event {
-    enum {
-        None = (QEvent::User + 1),
-        PlaybackStarted,
-        PlaybackFinished,
-        PlaybackPaused,
-        PlaybackRestarted,
-        StartSelectedPlayback,
-        SongPlayed,             // zaczęto odtwarzać piosenkę.
-        SongRange,
-        SongProgress,
-
-        SongOneShot,            // content table -> controller
-        SongShot,               // list table -> controller
-        DirSelected,            // tree -> table
-        CheckingAllSongs,       // tree -> table
-        NoSongsSelected,        // table -> tree
-        PartlySongsSelected,    // table -> tree
-        AllSongsSelected,       // table -> tree
-        SelectionChanged,       // selections -> ListTree
-    };
-}

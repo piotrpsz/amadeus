@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "control_bar.h"
 #include "workspace.h"
+#include "progress.h"
 #include "tool.h"
 #include <QIcon>
 #include <QMenu>
@@ -19,6 +20,7 @@
 Window::Window(): QDialog(),
     controlbar_{new ControlBar},
     workspace_{new Workspace},
+    progress_{new Progress},
     tray_{new QSystemTrayIcon(this)},
     tray_menu_{new QMenu},
     app_icon_{":/img/speaker"},
@@ -68,6 +70,7 @@ Window::Window(): QDialog(),
     QVBoxLayout *main_layout = new QVBoxLayout;
     main_layout->addWidget(controlbar_);
     main_layout->addWidget(workspace_);
+    main_layout->addWidget(progress_);
     setLayout(main_layout);
 
     tray_->show();

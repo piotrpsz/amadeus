@@ -28,12 +28,14 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include <QTableWidget>
+#include <optional>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
 class QEvent;
 class QShowEvent;
 class QMouseEvent;
+class QTableWidgetItem;
 class QContextMenuEvent;
 
 
@@ -41,6 +43,7 @@ class PlayListTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1, DIR};
     QString dir_{};
+    std::optional<int> saved_{};
 public:
     PlayListTable(QWidget* = nullptr);
     ~PlayListTable();
@@ -61,4 +64,7 @@ private:
     bool are_all_checked() const noexcept;
     bool are_all_unchecked() const noexcept;
     QTableWidgetItem* item_for(QString&& path) const noexcept;
+
+    void focusInEvent(QFocusEvent*) override;
+    void focusOutEvent(QFocusEvent*) override;
 };

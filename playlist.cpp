@@ -25,4 +25,5 @@ void PlayList::showEvent(QShowEvent* e) {
     auto const w0 = 25. * width / 100.;
     auto const w1 = width - splitter_->handleWidth() - w0;
     splitter_->setSizes({static_cast<int>(w0), static_cast<int>(w1)});
+    files_->setFocus();
 }

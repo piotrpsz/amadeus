@@ -58,6 +58,7 @@ qt_add_executable(amadeus
         model/playlist.h model/playlist.cpp
         model/song.h model/song.cpp
         line_text_edit.h line_text_edit.cpp
+        progress.h progress.cpp
 )
 
 

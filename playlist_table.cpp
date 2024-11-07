@@ -35,6 +35,7 @@
 #include <QAction>
 #include <QFileInfo>
 #include <QShowEvent>
+#include <QFocusEvent>
 #include <QMouseEvent>
 #include <QHeaderView>
 #include <QTableWidgetItem>
@@ -127,9 +128,45 @@ void PlayListTable::contextMenuEvent(QContextMenuEvent* const event) {
     delete menu;
 }
 
+/********************************************************************
+ *                                                                  *
+ *                  f o c u s O u t E v e n t                       *
+ *                                                                  *
+ *******************************************************************/
+
+void PlayListTable::focusOutEvent(QFocusEvent* e) {
+    if (int row = currentRow(); row != -1)
+        saved_ = row;
+}
+
+/********************************************************************
+ *                                                                  *
+ *                  f o c u s I n E v e n t                         *
+ *                                                                  *
+ *******************************************************************/
+
+void PlayListTable::focusInEvent(QFocusEvent* e) {
+    if (saved_) {
+        setCurrentItem(item(*saved_, 0));
+        saved_ = {};
+    }
+}
+
+/********************************************************************
+ *                                                                  *
+ *                     s h o w E v e n t                            *
+ *                                                                  *
+ *******************************************************************/
+
 void PlayListTable::showEvent(QShowEvent* event) {
     update_content();
 }
+
+/********************************************************************
+ *                                                                  *
+ *               m o u s e P r e s s E v e n t                      *
+ *                                                                  *
+ *******************************************************************/
 
 void PlayListTable::mousePressEvent(QMouseEvent* const event) {
     if (event->button() == Qt::RightButton)
@@ -154,7 +191,7 @@ void PlayListTable::customEvent(QEvent* const event) {
             dir_ = dir;
             clear_content();
             new_content_for(std::move(dir));
-
+            setFocus();
         }
         break;
 
@@ -176,8 +213,10 @@ void PlayListTable::customEvent(QEvent* const event) {
 
     case event::SongPlayed:
         if (auto const data = e->data(); !data.empty()) {
-            if (auto const it = item_for(data[0].toString()))
+            if (auto const it = item_for(data[0].toString())) {
                 setCurrentItem(it);
+                setFocus();
+            }
         }
         break;
     }

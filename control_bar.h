@@ -44,6 +44,8 @@ class ControlBar : public QWidget {
     std::vector<std::string> songs_{};
     int idx_ = -1;
     int saved_idx = -1;
+    qint64 previous_position_{};
+    qint64 previous_duration_{};
 public:
     explicit ControlBar(QWidget *parent = nullptr);
     ~ControlBar();

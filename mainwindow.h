@@ -12,6 +12,7 @@ class QLabel;
 class QAction;
 class ControlBar;
 class Workspace;
+class Progress;
 
 
 class Window : public QDialog {
@@ -28,6 +29,7 @@ class Window : public QDialog {
     QAction* const pause_action_;
     ControlBar* const controlbar_;
     Workspace* const workspace_;
+    Progress* const progress_;
     bool first_time_{true};
 public:
     Window();

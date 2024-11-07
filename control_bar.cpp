@@ -18,7 +18,11 @@
 #include <QMediaPlayer>
 #include <QAudioOutput>
 #include <span>
+#include <iostream>
+#include <format>
 #include <fmt/core.h>
+
+using namespace std;
 
 ControlBar::ControlBar(QWidget *parent) :
     QWidget{parent},
@@ -51,10 +55,20 @@ ControlBar::ControlBar(QWidget *parent) :
 
     // audio (player & output) settings
     player_->setAudioOutput(audio_output_);
-    connect(player_, &QMediaPlayer::positionChanged, [](auto pos) {
-        // TODO handle changed position
-        // fmt::print(stderr, "{}\n", pos);
+    connect(player_, &QMediaPlayer::positionChanged, [this](auto pos) {
+        if (pos != previous_position_) {
+            EventController::self().send(event::SongProgress, pos);
+            previous_position_ = pos;
+        }
     });
+    connect(player_, &QMediaPlayer::durationChanged, this, [this](auto pos) {
+        if (pos != previous_duration_) {
+            EventController::self().send(event::SongRange, pos);
+            previous_duration_ = pos;
+        }
+    });
+
+
     connect(player_, &QMediaPlayer::mediaStatusChanged, this, [this](auto status) {
         switch (status) {
         case QMediaPlayer::EndOfMedia:
@@ -142,6 +156,7 @@ ControlBar::ControlBar(QWidget *parent) :
     setLayout(layout);
 
     EventController::self().append(this,
+        event::SongShot,
         event::SongOneShot,
         event::StartSelectedPlayback);
 }
@@ -159,6 +174,15 @@ ControlBar::~ControlBar() {
 void ControlBar::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
+    case event::SongShot:
+        if (auto const data = e->data(); !data.empty()) {
+            auto const path = data[0].toString();
+            if (auto idx = song_idx(path); idx != -1) {
+                idx_ = idx;
+                set_song(QString::fromStdString(songs_[idx_]));
+            }
+        }
+        break;
     case event::SongOneShot:
         if (auto const data = e->data(); !data.empty()) {
             auto const path = data[0].toString();
@@ -189,16 +213,20 @@ void ControlBar::customEvent(QEvent* const event) {
  *******************************************************************/
 
 void ControlBar::play_next() noexcept {
-    if (songs_.empty())
+    if (songs_.empty()) {
+        cerr << "Songs list is empty\n";
         return;
+    }
 
     if (saved_idx > -1) {
+        cerr << format("Continue for saved index: {}\n", saved_idx);
         idx_ = saved_idx;
         set_song(QString::fromStdString(songs_[idx_]));
         return;
     }
 
     if ((idx_ + 1) < songs_.size()) {
+        cerr << format("play next song: {}\n", idx_ + 1);
         auto path = QString::fromStdString(songs_[++idx_]);
         set_song(path);
     }
