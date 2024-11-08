@@ -33,6 +33,7 @@
 /*------- forward declarations:
 -------------------------------------------------------------------*/
 class QEvent;
+class QHideEvent;
 class QShowEvent;
 class QMouseEvent;
 class QTableWidgetItem;
@@ -49,6 +50,7 @@ public:
     ~PlayListTable();
 private:
     void showEvent(QShowEvent*) override;
+    void hideEvent(QHideEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
     void contextMenuEvent(QContextMenuEvent*) override;
     void customEvent(QEvent*) override;
@@ -67,4 +69,5 @@ private:
 
     void focusInEvent(QFocusEvent*) override;
     void focusOutEvent(QFocusEvent*) override;
+    void select(QTableWidgetItem*);
 };

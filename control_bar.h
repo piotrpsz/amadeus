@@ -4,12 +4,14 @@
 -------------------------------------------------------------------*/
 #include <QWidget>
 #include <QIcon>
+#include <mutex>
 
 /*------- forward eclarations:
 -------------------------------------------------------------------*/
 class QLabel;
 class QSlider;
 class QEvent;
+class QShowEvent;
 class QPushButton;
 class QMediaPlayer;
 class QAudioOutput;
@@ -46,6 +48,7 @@ class ControlBar : public QWidget {
     int saved_idx = -1;
     qint64 previous_position_{};
     qint64 previous_duration_{};
+    std::mutex mutex_{};
 public:
     explicit ControlBar(QWidget *parent = nullptr);
     ~ControlBar();
@@ -54,6 +57,7 @@ private:
     void play_prev() noexcept;
     void set_song(QString const& path) noexcept;
     void playback_changed() const noexcept;
+    void showEvent(QShowEvent*) override;
     void customEvent(QEvent*) override;
 
     int song_idx(QString const& qpath) const noexcept {

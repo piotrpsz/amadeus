@@ -159,11 +159,17 @@ ControlBar::ControlBar(QWidget *parent) :
         event::SongShot,
         event::SongOneShot,
         event::StartSelectedPlayback,
-        event::SongReprogress);
+        event::SongReprogress,
+        event::SelectionChanged);
 }
 
 ControlBar::~ControlBar() {
     EventController::self().remove(this);
+}
+
+void ControlBar::showEvent(QShowEvent* const event) {
+    if (!song_path_.isEmpty())
+        EventController::self().send(event::SongPlayed, song_path_);
 }
 
 /********************************************************************
@@ -178,6 +184,7 @@ void ControlBar::customEvent(QEvent* const event) {
     case event::SongShot:
         if (auto const data = e->data(); !data.empty()) {
             auto const path = data[0].toString();
+            lock_guard<mutex> lg{mutex_};
             if (auto idx = song_idx(path); idx != -1) {
                 idx_ = idx;
                 set_song(QString::fromStdString(songs_[idx_]));
@@ -188,6 +195,7 @@ void ControlBar::customEvent(QEvent* const event) {
         if (auto const data = e->data(); !data.empty()) {
             auto const path = data[0].toString();
             one_shot_ = true;
+            lock_guard<mutex> lg{mutex_};
             // A song was selected from the collection.
             if (auto idx = song_idx(path); idx != -1) {
                 idx_ = idx;
@@ -206,10 +214,17 @@ void ControlBar::customEvent(QEvent* const event) {
                 player_->setPosition(position);
         }
         break;
-    case event::StartSelectedPlayback:
-        songs_ = Selection::self().to_vector();
-        idx_ = 0;
-        set_song(QString::fromStdString(songs_[idx_]));
+    case event::StartSelectedPlayback: {
+            lock_guard<mutex> lg{mutex_};
+            songs_ = Selection::self().to_vector();
+            idx_ = 0;
+            set_song(QString::fromStdString(songs_[idx_]));
+        }
+        break;
+    case event::SelectionChanged: {
+            lock_guard<mutex> lg{mutex_};
+            songs_ = Selection::self().to_vector();
+        }
         break;
     }
 }
@@ -221,6 +236,8 @@ void ControlBar::customEvent(QEvent* const event) {
  *******************************************************************/
 
 void ControlBar::play_next() noexcept {
+    lock_guard<mutex> lg{mutex_};
+
     if (songs_.empty()) {
         cerr << "Songs list is empty\n";
         return;
@@ -247,6 +264,8 @@ void ControlBar::play_next() noexcept {
  *******************************************************************/
 
 void ControlBar::play_prev() noexcept {
+    lock_guard<mutex> lg{mutex_};
+
     if (songs_.empty())
         return;
 
@@ -289,6 +308,7 @@ void ControlBar::set_song(QString const& path) noexcept {
     title_->setToolTip(path);
 
     // Set player.
+    song_path_ = path;
     player_->setSource(QUrl::fromLocalFile(path));
     player_->play();
     played_ = true;

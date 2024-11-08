@@ -65,7 +65,7 @@ PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
             else
                 Selection::self().erase(path);
 
-            setCurrentItem(item);
+            select(item);
             update_parent();
         }
     });
@@ -81,6 +81,12 @@ PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
 PlayListTable::~PlayListTable() {
     EventController::self().remove(this);
 }
+
+/********************************************************************
+ *                                                                  *
+ *               c o n t e x t M e n u E v e n t                    *
+ *                                                                  *
+ *******************************************************************/
 
 void PlayListTable::contextMenuEvent(QContextMenuEvent* const event) {
     auto const menu = new QMenu(this);
@@ -147,7 +153,7 @@ void PlayListTable::focusOutEvent(QFocusEvent* e) {
 
 void PlayListTable::focusInEvent(QFocusEvent* e) {
     if (saved_) {
-        setCurrentItem(item(*saved_, 0));
+        select(item(*saved_, 0));
         saved_ = {};
     }
 }
@@ -160,7 +166,15 @@ void PlayListTable::focusInEvent(QFocusEvent* e) {
 
 void PlayListTable::showEvent(QShowEvent* event) {
     update_content();
+    setFocus();
 }
+
+void PlayListTable::hideEvent(QHideEvent* event) {
+    if (int row = currentRow(); row != -1)
+        saved_ = row;
+}
+
+
 
 /********************************************************************
  *                                                                  *
@@ -211,13 +225,11 @@ void PlayListTable::customEvent(QEvent* const event) {
         }
         break;
 
+    // Currently playing song.
     case event::SongPlayed:
-        if (auto const data = e->data(); !data.empty()) {
-            if (auto const it = item_for(data[0].toString())) {
-                setCurrentItem(it);
-                setFocus();
-            }
-        }
+        if (auto const data = e->data(); !data.empty())
+            if (auto const it = item_for(data[0].toString()))
+                select(it);
         break;
     }
 }
@@ -302,4 +314,10 @@ bool PlayListTable::are_all_unchecked() const noexcept {
         if (item(i, 0)->checkState() != Qt::Unchecked)
             return false;
     return true;
+}
+
+void PlayListTable::select(QTableWidgetItem* const item) {
+    setFocus();
+    scrollToItem(item);
+    setCurrentItem(item);
 }
