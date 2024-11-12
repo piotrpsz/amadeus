@@ -31,13 +31,13 @@
 /*------- forward declarations:
 -------------------------------------------------------------------*/
 class Catalog;
-class PlayList;
+class PlaylistWidget;
 
 
 class Workspace : public QTabWidget {
     Q_OBJECT
     Catalog* const catalog_;
-    PlayList* const play_list_;
+    PlaylistWidget* const playlist_widget_;
 public:
     Workspace(QWidget* = nullptr);
 private:

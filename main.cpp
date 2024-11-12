@@ -3,11 +3,13 @@
 #include <QCoreApplication>
 #include <QLocale>
 #include <QTranslator>
-#include <fmt/core.h>
 #include "mainwindow.h"
 #include "model/playlist.h"
 #include "model/song.h"
+#include <iostream>
 #include "tool.h"
+
+using namespace std;
 
 bool create_commands(SQLite const& db) {
     // return Playlist::create_table();
@@ -20,12 +22,12 @@ bool open_or_create_database() {
         auto const database_path = database_dir + '/' + "amadeus.sqlite";
 
         // Try to open database.
-        // if (SQLite::instance().open(database_path))
-        //     return true;
+        if (SQLite::self().open(database_path))
+            return true;
 
-        return SQLite::instance().create(database_path, [] (SQLite const& db) {
+        return SQLite::self().create(database_path, [] (SQLite const& db) {
             return create_commands(db);
-        }, true);
+        }, false);
     }
     return {};
 }
@@ -39,11 +41,9 @@ int main(int argc, char *argv[]) {
     QApplication a(argc, argv);
 
     if (!open_or_create_database()) {
-        fmt::print(stderr, "Can't open/create database filr\n");
+        cerr << "Can't open/create database file.\n";
         return -1;
     }
-
-    // a.setApplicationName("Amadeus");
 
     // QTranslator translator;
     // const QStringList uiLanguages = QLocale::system().uiLanguages();
@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     //         break;
     //     }
     // }
+
     Window w;
     w.show();
     return a.exec();

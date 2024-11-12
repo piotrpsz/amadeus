@@ -22,12 +22,14 @@ class Song {
         )"
         }
     };
-    i64 id_;
+    i64 id_{};
     i64 pid_;   // playlist id
     std::string path_;
 
 public:
     explicit Song(Row&&);
+    explicit Song(i64 pid, std::string path): pid_{pid}, path_{std::move(path)} {}
+    bool save() noexcept { return (id_ > 0) ? update() : insert(); }
     bool insert() noexcept;
     bool update() const noexcept;
 

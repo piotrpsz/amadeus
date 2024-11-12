@@ -39,7 +39,9 @@ class QTreeWidgetItem;
 class QContextMenuEvent;
 
 
-class PlayListTree : public QTreeWidget {
+/*------- PlayListTree ::QTreeWidget:
+-------------------------------------------------------------------*/
+class PlaylistTree : public QTreeWidget {
     Q_OBJECT
     enum {ID = Qt::UserRole + 1, PID, PATH};
     QTreeWidgetItem* root_{};
@@ -48,8 +50,8 @@ class PlayListTree : public QTreeWidget {
     std::unordered_set<QString> selections_{};
 
 public:
-    PlayListTree(QWidget* = nullptr);
-    ~PlayListTree();
+    PlaylistTree(QWidget* = nullptr);
+    ~PlaylistTree();
 
 private:
     void contextMenuEvent(QContextMenuEvent*) override;

@@ -13,7 +13,7 @@ Song::Song(Row&& row) {
 
 bool Song::insert() noexcept {
     static auto const query{"INSERT INTO song (pid, path) VALUES(?,?)"s};
-    if (auto const id = SQLite::instance().insert(query, pid_, path_); id > 0) {
+    if (auto const id = SQLite::self().insert(query, pid_, path_); id > 0) {
         id_ = id;
         return true;
     }
@@ -22,13 +22,13 @@ bool Song::insert() noexcept {
 
 bool Song::update() const noexcept {
     static auto const query{"UPDATE song SET pid=?, path=? WHERE id=?"s};
-    return SQLite::instance().update(query, pid_, path_, id_);
+    return SQLite::self().update(query, pid_, path_, id_);
 }
 
 
 bool Song::create_table() noexcept {
     for (auto const& cmd : CreateSongsCmd)
-        if (!SQLite::instance().exec(cmd))
+        if (!SQLite::self().exec(cmd))
             return {};
     return true;
 }
@@ -36,7 +36,7 @@ bool Song::create_table() noexcept {
 auto Song::with_id(i64 id) noexcept
     -> std::optional<Song> {
     static auto const query{"SELECT * FROM song WHERE id=?"s};
-    if (auto const result = SQLite::instance().select(query, id))
+    if (auto const result = SQLite::self().select(query, id))
         if (result->size() == 1)
             return Song(result.value()[0]);
     return {};
@@ -47,7 +47,7 @@ auto Song::all_for(i64 const pid) noexcept
     std::vector<Song> data{};
 
     static auto const query{"SELECT * FROM song WHERE pid=?"s};
-    if (auto result = SQLite::instance().select(query, pid)) {
+    if (auto result = SQLite::self().select(query, pid)) {
         for (auto&& row : result.value())
             data.emplace_back(std::move(row));
         return data;
@@ -57,5 +57,5 @@ auto Song::all_for(i64 const pid) noexcept
 
 auto Song::remove(i64 const id) noexcept
     -> bool {
-    return SQLite::instance().exec("DELETE FROM playlist WHERE id=?", id);
+    return SQLite::self().exec("DELETE FROM playlist WHERE id=?", id);
 }

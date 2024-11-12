@@ -28,11 +28,12 @@
 -------------------------------------------------------------------*/
 #include <sqlite3.h>
 #include <source_location>
-#include <fmt/core.h>
+#include <iostream>
+#include <format>
 
 static inline void LOG_ERROR(sqlite3 *const db, std::source_location const sl = std::source_location::current()) noexcept {
     if (auto const err = sqlite3_errcode(db); err != SQLITE_OK)
-        fmt::print(stderr, "SQLite Error: {} ({}) => fn::{}().{} [{}]\n",
+        std::cerr << std::format("SQLite Error: {} ({}) => fn::{}().{} [{}]\n",
                    sqlite3_errmsg(db),
                    sqlite3_errcode(db),
                    sl.function_name(),

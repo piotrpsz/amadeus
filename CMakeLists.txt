@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets Multimedia LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets Multimedia LinguistTools)
-find_package(fmt REQUIRED)
+# find_package(fmt REQUIRED)
 find_package(Boost REQUIRED)
 find_package(date REQUIRED)
 find_package(range-v3 REQUIRED)
@@ -34,7 +34,7 @@ qt_add_executable(amadeus
         workspace.h workspace.cpp
         control_bar.h control_bar.cpp
         catalog.h catalog.cpp
-        playlist.h playlist.cpp
+        playlist_widget.h playlist_widget.cpp
         catalog_tree.h catalog_tree.cpp
         catalog_table.h catalog_table.cpp
         shared/event_controller.hh
@@ -59,6 +59,8 @@ qt_add_executable(amadeus
         model/song.h model/song.cpp
         line_text_edit.h line_text_edit.cpp
         progress.h progress.cpp
+        model/selection.cpp
+
 )
 
 
@@ -66,7 +68,7 @@ target_link_libraries(amadeus PRIVATE
     z
     sqlite3
     libboost_iostreams.a
-    fmt::fmt
+    # fmt::fmt
     date::date date::date-tz
     range-v3::meta range-v3::concepts range-v3::range-v3
     Qt6::Widgets

@@ -25,6 +25,7 @@
 
 /*------- include files:
 -------------------------------------------------------------------*/
+#include "shared.h"
 #include "result.h"
 #include "gzip.h"
 

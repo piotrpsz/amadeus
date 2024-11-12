@@ -30,6 +30,7 @@
 #include "shared/event_controller.hh"
 #include "model/selection.h"
 #include "line_text_edit.h"
+#include <iostream>
 #include <memory>
 #include <QDir>
 #include <QMenu>
@@ -40,9 +41,11 @@
 #include <QMouseEvent>
 #include <QTreeWidgetItem>
 #include <QTreeWidgetItemIterator>
-#include <fmt/core.h>
+// #include <fmt/core.h>
 
-PlayListTree::PlayListTree(QWidget* const parent) :
+using namespace std;
+
+PlaylistTree::PlaylistTree(QWidget* const parent) :
     QTreeWidget(parent),
     timer_{new QTimer}
 {
@@ -74,8 +77,8 @@ PlayListTree::PlayListTree(QWidget* const parent) :
 
     // When you change the selected item, we reset the timer..
     connect(this, &QTreeWidget::currentItemChanged, this, [this](auto, auto) {
-        timer_->stop();
-        timer_->start();
+        // timer_->stop();
+        // timer_->start();
     });
     connect(this, &QTreeWidget::itemClicked, this, [this] (auto item, auto _) {
         setCurrentItem(item);
@@ -90,7 +93,7 @@ PlayListTree::PlayListTree(QWidget* const parent) :
 }
 
 // Context menu call.
-void PlayListTree::contextMenuEvent(QContextMenuEvent* const event) {
+void PlaylistTree::contextMenuEvent(QContextMenuEvent* const event) {
     auto const item = currentItem();
     if (item == nullptr || item == root_) return;
     if (item == current_ && Selection::self().empty()) return;
@@ -103,21 +106,21 @@ void PlayListTree::contextMenuEvent(QContextMenuEvent* const event) {
     if (item == current_) {
         auto const create_playlist = menu->addAction("Create a playlist from selected songs");
         connect(create_playlist, &QAction::triggered, this, [this](auto _) {
-            auto const dialog = new LineTextEdit("Plylist: ");
-            dialog->exec();
-
+            auto const dialog = make_unique<LineTextEdit>("Plylist name");
+            if (dialog->exec() == QDialog::Accepted) {
+                 Selection::self().save_as_playlist(dialog->name().toStdString());
+            }
         });
     }
     else {
         auto const rename_playlist = menu->addAction("Change playlist name");
         connect(rename_playlist, &QAction::triggered, this, [this](auto _) {
-            fmt::print(stderr, "rename action\n");
         });
     }
     menu->exec(event->globalPos());
 }
 
-void PlayListTree::mousePressEvent(QMouseEvent* const event) {
+void PlaylistTree::mousePressEvent(QMouseEvent* const event) {
     // if (event->button() == Qt::RightButton) {
     //     fmt::print(stderr, "right mouse button\n");
     //     return;
@@ -125,12 +128,12 @@ void PlayListTree::mousePressEvent(QMouseEvent* const event) {
     QTreeWidget::mousePressEvent(event);
 }
 
-PlayListTree::~PlayListTree() {
+PlaylistTree::~PlaylistTree() {
     EventController::self().remove(this);
 }
 
 // Handle my own events.
-void PlayListTree::customEvent(QEvent* const event) {
+void PlaylistTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
     case event::SelectionChanged:
@@ -139,8 +142,9 @@ void PlayListTree::customEvent(QEvent* const event) {
     }
 }
 
-void PlayListTree::update_content() {
+void PlaylistTree::update_content() {
     clear();
+
     current_ = new QTreeWidgetItem(this);
     current_->setText(0, "Current selections");
     current_->setData(0, ID, -1);
@@ -156,7 +160,7 @@ void PlayListTree::update_content() {
     root_->setExpanded(true);
 }
 
-auto PlayListTree::
+auto PlaylistTree::
 add_items_for(QTreeWidgetItem* const parent)
 -> void {
     auto parent_path = parent->data(0, PATH).toString();
@@ -182,7 +186,7 @@ add_items_for(QTreeWidgetItem* const parent)
     }
 }
 
-auto PlayListTree::
+auto PlaylistTree::
 item_for(QString&& path) const
 -> QTreeWidgetItem* {
     QTreeWidgetItemIterator it(root_);

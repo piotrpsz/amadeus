@@ -27,11 +27,9 @@
 /*------- include files:
 -------------------------------------------------------------------*/
 #include "types.h"
-#include "shared.h"
 #include <variant>
 #include <optional>
 #include <span>
-#include <fmt/format.h>
 #include <range/v3/all.hpp>
 namespace rng = ranges;
 
@@ -47,6 +45,7 @@ public:
     explicit Value(std::integral auto v) : data_{static_cast<i64>(v)} {}
     explicit Value(std::floating_point auto v) : data_{static_cast<f64>(v)} {}
     explicit Value(std::string v) : data_{std::move(v)} {}
+    explicit Value(std::string_view v) : data_{std::string(v)} {}
     explicit Value(std::vector<u8> v) : data_{std::move(v)} {}
 
     /// Constructor dedicated to optional values

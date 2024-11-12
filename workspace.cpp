@@ -1,14 +1,14 @@
 #include "workspace.h"
 #include "catalog.h"
-#include "playlist.h"
+#include "playlist_widget.h"
 #include <QSlider>
 
 Workspace::Workspace(QWidget* const parent) :
     QTabWidget(parent),
     catalog_{new Catalog},
-    play_list_{new PlayList}
+    playlist_widget_{new PlaylistWidget}
 {
     setTabPosition(South);
     addTab(catalog_, "Catalog");
-    addTab(play_list_, "Play lists");
+    addTab(playlist_widget_, "Play lists");
 }

@@ -4,6 +4,7 @@
 #include "../shared/event_controller.hh"
 #include <set>
 #include <string>
+#include <string_view>
 #include <mutex>
 #include <QString>
 
@@ -58,6 +59,8 @@ public:
             songs.push_back(it);
         return songs;
     }
+
+    bool save_as_playlist(std::string&& name) noexcept;
 
     using iterator = std::set<std::string>::iterator;
     using const_iterator = std::set<std::string>::const_iterator;

@@ -22,7 +22,6 @@
 //
 // Created by Piotr Pszczółkowski on 28.10.2024.
 // piotr@beesoft.pl
-
 #pragma once
 
 /*------- include files:
@@ -40,14 +39,16 @@ class QTableWidgetItem;
 class QContextMenuEvent;
 
 
-class PlayListTable : public QTableWidget {
+/*------- PlaylistTable ::QTableWidget:
+-------------------------------------------------------------------*/
+class PlaylistTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1, DIR};
     QString dir_{};
     std::optional<int> saved_{};
 public:
-    PlayListTable(QWidget* = nullptr);
-    ~PlayListTable();
+    PlaylistTable(QWidget* = nullptr);
+    ~PlaylistTable();
 private:
     void showEvent(QShowEvent*) override;
     void hideEvent(QHideEvent*) override;
@@ -57,6 +58,7 @@ private:
     void new_content_for(QString&& path);
 
     void clear_content() noexcept {
+        // Remove content (and only content, no settings)
         clearContents();
         setRowCount(0);
     }

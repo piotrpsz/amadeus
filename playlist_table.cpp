@@ -42,7 +42,7 @@
 #include <QContextMenuEvent>
 #include <fmt/core.h>
 
-PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
+PlaylistTable::PlaylistTable(QWidget* const parent) : QTableWidget(parent) {
     setRowCount(0);
     setColumnCount(1);
     setEditTriggers(NoEditTriggers);
@@ -78,7 +78,7 @@ PlayListTable::PlayListTable(QWidget* const parent) : QTableWidget(parent) {
     update_content();
 }
 
-PlayListTable::~PlayListTable() {
+PlaylistTable::~PlaylistTable() {
     EventController::self().remove(this);
 }
 
@@ -88,7 +88,7 @@ PlayListTable::~PlayListTable() {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::contextMenuEvent(QContextMenuEvent* const event) {
+void PlaylistTable::contextMenuEvent(QContextMenuEvent* const event) {
     auto const menu = new QMenu(this);
     auto const check_all_action = menu->addAction("Select all");
     auto const uncheck_all_action = menu->addAction("Unselect all");
@@ -140,7 +140,7 @@ void PlayListTable::contextMenuEvent(QContextMenuEvent* const event) {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::focusOutEvent(QFocusEvent* e) {
+void PlaylistTable::focusOutEvent(QFocusEvent* e) {
     if (int row = currentRow(); row != -1)
         saved_ = row;
 }
@@ -151,7 +151,7 @@ void PlayListTable::focusOutEvent(QFocusEvent* e) {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::focusInEvent(QFocusEvent* e) {
+void PlaylistTable::focusInEvent(QFocusEvent* e) {
     if (saved_) {
         select(item(*saved_, 0));
         saved_ = {};
@@ -164,12 +164,12 @@ void PlayListTable::focusInEvent(QFocusEvent* e) {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::showEvent(QShowEvent* event) {
+void PlaylistTable::showEvent(QShowEvent* event) {
     update_content();
     setFocus();
 }
 
-void PlayListTable::hideEvent(QHideEvent* event) {
+void PlaylistTable::hideEvent(QHideEvent* event) {
     if (int row = currentRow(); row != -1)
         saved_ = row;
 }
@@ -182,7 +182,7 @@ void PlayListTable::hideEvent(QHideEvent* event) {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::mousePressEvent(QMouseEvent* const event) {
+void PlaylistTable::mousePressEvent(QMouseEvent* const event) {
     if (event->button() == Qt::RightButton)
         return;
     QTableWidget::mousePressEvent(event);
@@ -194,7 +194,7 @@ void PlayListTable::mousePressEvent(QMouseEvent* const event) {
  *                                                                  *
  *******************************************************************/
 
-void PlayListTable::customEvent(QEvent* const event) {
+void PlaylistTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
 
@@ -234,7 +234,7 @@ void PlayListTable::customEvent(QEvent* const event) {
     }
 }
 
-void PlayListTable::new_content_for(QString&& path) {
+void PlaylistTable::new_content_for(QString&& path) {
     QDir const dir{path};
     auto const info_list = dir.entryInfoList();
 
@@ -264,7 +264,7 @@ void PlayListTable::new_content_for(QString&& path) {
     horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
 }
 
-auto PlayListTable::item_for(QString&& path) const noexcept
+auto PlaylistTable::item_for(QString&& path) const noexcept
     -> QTableWidgetItem*
 {
     auto const n = rowCount();
@@ -276,7 +276,7 @@ auto PlayListTable::item_for(QString&& path) const noexcept
     return {};
 }
 
-void PlayListTable::update_content() noexcept {
+void PlaylistTable::update_content() noexcept {
     clear_content();
 
     int row{};
@@ -291,7 +291,7 @@ void PlayListTable::update_content() noexcept {
 
 }
 
-void PlayListTable::update_parent() const noexcept {
+void PlaylistTable::update_parent() const noexcept {
     if (are_all_unchecked())
         EventController::self().send(event::NoSongsSelected, dir_);
     else if (are_all_checked())
@@ -300,7 +300,7 @@ void PlayListTable::update_parent() const noexcept {
         EventController::self().send(event::PartlySongsSelected, dir_);
 }
 
-bool PlayListTable::are_all_checked() const noexcept {
+bool PlaylistTable::are_all_checked() const noexcept {
     auto const n = rowCount();
     for (auto i = 0; i < n; ++i)
         if (item(i, 0)->checkState() != Qt::Checked)
@@ -308,7 +308,7 @@ bool PlayListTable::are_all_checked() const noexcept {
     return true;
 }
 
-bool PlayListTable::are_all_unchecked() const noexcept {
+bool PlaylistTable::are_all_unchecked() const noexcept {
     auto const n = rowCount();
     for (auto i = 0; i < n; ++i)
         if (item(i, 0)->checkState() != Qt::Unchecked)
@@ -316,7 +316,7 @@ bool PlayListTable::are_all_unchecked() const noexcept {
     return true;
 }
 
-void PlayListTable::select(QTableWidgetItem* const item) {
+void PlaylistTable::select(QTableWidgetItem* const item) {
     setFocus();
     scrollToItem(item);
     setCurrentItem(item);

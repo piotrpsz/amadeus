@@ -20,55 +20,31 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 //
-// Created by Piotr Pszczółkowski on 24.10.2024.
+// Created by Piotr Pszczółkowski on 8.11.2024.
 // piotr@beesoft.pl
 #pragma once
 
 /*------- include files:
 -------------------------------------------------------------------*/
-#include <QEvent>
-#include <QVector>
-#include <QVariant>
+#include <QWidget>
 
-/*------- Event ::QEvent:
+/*------- forward eclarations:
 -------------------------------------------------------------------*/
-class Event : public QEvent {
-    QVector<QVariant> data_{};
+class PlaylistTree;
+class PlaylistTable;
+class QSplitter;
+class QShowEvent;
+
+/*------- PlaylistWidget ::QWidget:
+-------------------------------------------------------------------*/
+class PlaylistWidget : public QWidget {
+    Q_OBJECT
+    static constexpr int SPLITTER_HANDLE_WIDTH{3};
+    QSplitter* const splitter_;
+    PlaylistTree* const lists_;
+    PlaylistTable* const files_;
 public:
-    template<typename... T>
-    explicit Event(int const id, T... args) : QEvent(static_cast<QEvent::Type>(id)) {
-        (..., data_.push_back(args));
-    }
-
-    QVector<QVariant> data() && {
-        return std::move(data_);
-    }
-    [[nodiscard]] QVector<QVariant> const& data() const& {
-        return data_;
-    }
+    explicit PlaylistWidget(QWidget *parent = nullptr);
+private:
+    void showEvent(QShowEvent*) override;
 };
-
-namespace event {
-    enum {
-        None = (QEvent::User + 1),
-        PlaybackStarted,
-        PlaybackFinished,
-        PlaybackPaused,
-        PlaybackRestarted,
-        StartSelectedPlayback,
-        SongPlayed,             // zaczęto odtwarzać piosenkę.
-        SongRange,
-        SongProgress,
-        SongReprogress,
-        NewPlaylistAdded,
-
-        SongOneShot,            // content table -> controller
-        SongShot,               // list table -> controller
-        DirSelected,            // tree -> table
-        CheckingAllSongs,       // tree -> table
-        NoSongsSelected,        // table -> tree
-        PartlySongsSelected,    // table -> tree
-        AllSongsSelected,       // table -> tree
-        SelectionChanged,       // selections -> ListTree
-    };
-}

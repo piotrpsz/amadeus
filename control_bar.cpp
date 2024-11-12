@@ -1,3 +1,27 @@
+// MIT License
+//
+// Copyright (c) 2024 Piotr Pszczółkowski
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all
+// copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+// SOFTWARE.
+//
+// Created by Piotr Pszczółkowski on 8.11.2024.
+// piotr@beesoft.pl
 
 /*------- include files:
 -------------------------------------------------------------------*/
@@ -24,21 +48,20 @@
 
 using namespace std;
 
-ControlBar::ControlBar(QWidget *parent) :
-    QWidget{parent},
-    player_{new QMediaPlayer},
-    audio_output_{new QAudioOutput},
-    play_icon_{style()->standardIcon(QStyle::SP_MediaPlay)},
-    pause_icon_{style()->standardIcon(QStyle::SP_MediaPause)},
-    volume_icon_{style()->standardIcon(QStyle::SP_MediaVolume)},
-    volume_muted_icon_{style()->standardIcon(QStyle::SP_MediaVolumeMuted)},
-    volume_btn_{new QPushButton},
-    play_pause_btn_{new QPushButton()},
-    sound_slide_{new QSlider(Qt::Horizontal)},
-    performer_{new QLabel},
-    album_{new QLabel},
-    title_{new QLabel}
-
+ControlBar::ControlBar(QWidget* const parent)
+    : QWidget{parent}
+    , player_{new QMediaPlayer}
+    , audio_output_{new QAudioOutput}
+    , play_icon_{style()->standardIcon(QStyle::SP_MediaPlay)}
+    , pause_icon_{style()->standardIcon(QStyle::SP_MediaPause)}
+    , volume_icon_{style()->standardIcon(QStyle::SP_MediaVolume)}
+    , volume_muted_icon_{style()->standardIcon(QStyle::SP_MediaVolumeMuted)}
+    , volume_btn_{new QPushButton}
+    , play_pause_btn_{new QPushButton()}
+    , sound_slide_{new QSlider(Qt::Horizontal)}
+    , performer_{new QLabel}
+    , album_{new QLabel}
+    , title_{new QLabel}
 {
     title_->setToolTipDuration(DEFAULT_TIP_DURATION);
 
@@ -53,22 +76,25 @@ ControlBar::ControlBar(QWidget *parent) :
         audio_output_->setVolume(position/100.);
     });
 
-    // audio (player & output) settings
+    // audio (player & output) settings -----------------------------
     player_->setAudioOutput(audio_output_);
-    connect(player_, &QMediaPlayer::positionChanged, [this](auto pos) {
+    // The playback position changed while the song was playing.
+    // Information for the playback progress slider.
+    connect(player_, &QMediaPlayer::positionChanged, this, [this](auto pos) {
         if (pos != previous_position_) {
             EventController::self().send(event::SongProgress, pos);
             previous_position_ = pos;
         }
     });
+    // Information about the duration of the song.
+    // Information for the playback progress slider (slider scaling).
     connect(player_, &QMediaPlayer::durationChanged, this, [this](auto pos) {
         if (pos != previous_duration_) {
             EventController::self().send(event::SongRange, pos);
             previous_duration_ = pos;
         }
     });
-
-
+    // The song has finished playing.
     connect(player_, &QMediaPlayer::mediaStatusChanged, this, [this](auto status) {
         switch (status) {
         case QMediaPlayer::EndOfMedia:
@@ -79,6 +105,7 @@ ControlBar::ControlBar(QWidget *parent) :
         }
     });
 
+    // Controller button settings -----------------------------------
     connect(audio_output_, &QAudioOutput::volumeChanged, this, [this] (double volume) {
         sound_slide_->setValue(100. * volume);
     });
@@ -167,7 +194,17 @@ ControlBar::~ControlBar() {
     EventController::self().remove(this);
 }
 
+/********************************************************************
+ *                                                                  *
+ *                      s h o w E v e n t                           *
+ *                                                                  *
+ *******************************************************************/
+
 void ControlBar::showEvent(QShowEvent* const event) {
+    // Tylko ControlBar wie że w czasie gdy aplikacja
+    // była ukryta nastąpiła zmiana utworu. Musimy powiadomić
+    // resztę programu o tym fakcie.
+    // Np. PlayListTable aby zmieniła zaznaczenie utworu.
     if (!song_path_.isEmpty())
         EventController::self().send(event::SongPlayed, song_path_);
 }

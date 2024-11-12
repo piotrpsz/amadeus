@@ -3,7 +3,8 @@
 #include <QString>
 #include <pwd.h>
 #include <filesystem>
-#include <fmt/core.h>
+#include <iostream>
+#include <format>
 namespace fs = std::filesystem;
 
 class QWidget;
@@ -37,7 +38,7 @@ public:
         if (fs::create_directories(path, ec))
             return true;
 
-        fmt::print(stderr, "{}\n", ec.message());
+        std::cerr << std::format("{}\n", ec.message());
         return {};
     }
 };

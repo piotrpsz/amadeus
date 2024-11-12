@@ -29,6 +29,8 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <format>
 #include "value.h"
 
 class Query {
@@ -84,7 +86,7 @@ public:
             return '?' == c;
         });
         if (std::cmp_not_equal(placeholder_count, values_.size())) {
-            fmt::print(stderr, "The number of placeholders and arguments does not match ({}, {})\n", placeholder_count, values_.size());
+            std::cerr << std::format("The number of placeholders and arguments does not match ({}, {})\n", placeholder_count, values_.size());
             return {};
         }
         return true;
