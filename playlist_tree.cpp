@@ -29,8 +29,9 @@
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include "model/selection.h"
+#include "model/playlist.h"
 #include "line_text_edit.h"
-#include <iostream>
+// #include <iostream>
 #include <memory>
 #include <QDir>
 #include <QMenu>
@@ -41,8 +42,6 @@
 #include <QMouseEvent>
 #include <QTreeWidgetItem>
 #include <QTreeWidgetItemIterator>
-// #include <fmt/core.h>
-
 using namespace std;
 
 PlaylistTree::PlaylistTree(QWidget* const parent) :
@@ -58,12 +57,16 @@ PlaylistTree::PlaylistTree(QWidget* const parent) :
     timer_->setInterval(500);
     timer_->setSingleShot(true);
     connect(timer_, &QTimer::timeout, this, [this]() {
-        // if (auto item = currentItem(); item) {
-        //     auto path{item->data(0, PATH).toString()};
-        //     EventController::self().send(event::DirSelected, std::move(path));
-        //     if (item->checkState(0) != Qt::PartiallyChecked)
-        //         EventController::self().send(event::CheckingAllSongs, item->checkState(0) == Qt::Checked);
-        // }
+        if (auto const item = currentItem()) {
+            if (item == playlists_)
+                return;
+            if (item == current_selections_) {
+                EventController::self().send(event::ShowCurrentSelectedSongs);
+                return;
+            }
+            auto const playlist_id = item->data(0, ID).toULongLong();
+            EventController::self().send(event::ShowPlaylistSongs, playlist_id);
+        }
     });
 
     auto p = palette();
@@ -77,8 +80,8 @@ PlaylistTree::PlaylistTree(QWidget* const parent) :
 
     // When you change the selected item, we reset the timer..
     connect(this, &QTreeWidget::currentItemChanged, this, [this](auto, auto) {
-        // timer_->stop();
-        // timer_->start();
+        timer_->stop();
+        timer_->start();
     });
     connect(this, &QTreeWidget::itemClicked, this, [this] (auto item, auto _) {
         setCurrentItem(item);
@@ -86,24 +89,24 @@ PlaylistTree::PlaylistTree(QWidget* const parent) :
     });
 
     update_content();
-    setCurrentItem(current_);
+    setCurrentItem(current_selections_);
 
     EventController::self().append(this,
-        event::None);
+        event::NewPlaylistAdded);
 }
 
 // Context menu call.
 void PlaylistTree::contextMenuEvent(QContextMenuEvent* const event) {
     auto const item = currentItem();
-    if (item == nullptr || item == root_) return;
-    if (item == current_ && Selection::self().empty()) return;
+    if (item == nullptr || item == playlists_) return;
+    if (item == current_selections_ && Selection::self().empty()) return;
 
     auto const menu = std::make_shared<QMenu>(this);
     auto const play_action = menu->addAction("Play");
     connect(play_action, &QAction::triggered, this, [this](auto _) {
         EventController::self().send(event::StartSelectedPlayback);
     });
-    if (item == current_) {
+    if (item == current_selections_) {
         auto const create_playlist = menu->addAction("Create a playlist from selected songs");
         connect(create_playlist, &QAction::triggered, this, [this](auto _) {
             auto const dialog = make_unique<LineTextEdit>("Plylist name");
@@ -142,24 +145,54 @@ void PlaylistTree::customEvent(QEvent* const event) {
     }
 }
 
+/********************************************************************
+*                                                                   *
+*                   u p d a t e _ c o n t e n t                     *
+*                                                                   *
+********************************************************************/
+
 void PlaylistTree::update_content() {
     clear();
 
-    current_ = new QTreeWidgetItem(this);
-    current_->setText(0, "Current selections");
-    current_->setData(0, ID, -1);
-    current_->setData(0, PID, -1);
+    current_selections_ = new QTreeWidgetItem(this);
+    current_selections_->setText(0, "Current selections");
+    current_selections_->setData(0, ID, -1);
+    current_selections_->setData(0, PID, -1);
 
+    playlists_ = new QTreeWidgetItem(this);
+    playlists_->setText(0, "Playlists");
+    playlists_->setData(1, ID, 0);
+    playlists_->setData(0, PID, -1);
 
-    root_ = new QTreeWidgetItem(this);
-    root_->setText(0, "Playlists");
-    root_->setData(1, ID, 0);
-    root_->setData(0, PID, -1);
-
-    // add_items_for(root_);
-    root_->setExpanded(true);
+    update_playlists();
+    playlists_->setExpanded(true);
 }
 
+/********************************************************************
+*                                                                   *
+*                  u p d a t e _ p l a y l i s t s                  *
+*                                                                   *
+********************************************************************/
+
+auto PlaylistTree::
+    update_playlists()
+    -> void
+{
+    // Read data from table 'playlist'.
+    auto const playlist_items = Playlist::all();
+    if (playlist_items.empty()) return;
+
+    auto const pid = playlists_->data(0, ID);
+    std::ranges::for_each(playlist_items, [this, pid] (auto playlist) {
+        auto const item = new QTreeWidgetItem(playlists_);
+        item->setText(0, playlist.qname());
+        item->setData(0, PID, pid);
+        item->setData(0, ID, playlist.qid());
+    });
+
+}
+
+/*
 auto PlaylistTree::
 add_items_for(QTreeWidgetItem* const parent)
 -> void {
@@ -185,11 +218,12 @@ add_items_for(QTreeWidgetItem* const parent)
         }
     }
 }
+*/
 
 auto PlaylistTree::
 item_for(QString&& path) const
 -> QTreeWidgetItem* {
-    QTreeWidgetItemIterator it(root_);
+    QTreeWidgetItemIterator it(playlists_);
     while (*it) {
         QTreeWidgetItem* const item = *it;
         if (item->data(0, PATH).toString() == path)

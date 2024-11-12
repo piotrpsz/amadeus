@@ -44,11 +44,13 @@ bool Playlist::create_table() noexcept {
     return {};
 }
 
-auto Playlist::all() noexcept
--> std::vector<Playlist> {
+auto Playlist::
+    all() noexcept
+    -> std::vector<Playlist>
+{
     std::vector<Playlist> data{};
 
-    static auto const query{"SELECT * FROM playlist"s};
+    static auto const query{"SELECT * FROM playlist ORDER BY name"s};
     if (auto result = SQLite::self().select(query)) {
         for (auto&& row : result.value())
             data.emplace_back(std::move(row));

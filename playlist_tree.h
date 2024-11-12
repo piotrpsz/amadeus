@@ -44,8 +44,8 @@ class QContextMenuEvent;
 class PlaylistTree : public QTreeWidget {
     Q_OBJECT
     enum {ID = Qt::UserRole + 1, PID, PATH};
-    QTreeWidgetItem* root_{};
-    QTreeWidgetItem* current_{};
+    QTreeWidgetItem* current_selections_{};
+    QTreeWidgetItem* playlists_{};
     QTimer* const timer_;
     std::unordered_set<QString> selections_{};
 
@@ -58,6 +58,7 @@ private:
     void mousePressEvent(QMouseEvent*) override;
     void customEvent(QEvent*) override;
     void update_content();
-    auto add_items_for(QTreeWidgetItem* parent) -> void;
+    void update_playlists();
+    // auto add_items_for(QTreeWidgetItem* parent) -> void;
     QTreeWidgetItem* item_for(QString&& path) const;
 };

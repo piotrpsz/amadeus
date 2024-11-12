@@ -40,7 +40,9 @@
 #include <QHeaderView>
 #include <QTableWidgetItem>
 #include <QContextMenuEvent>
-#include <fmt/core.h>
+#include <iostream>
+#include <format>
+using namespace std;
 
 PlaylistTable::PlaylistTable(QWidget* const parent) : QTableWidget(parent) {
     setRowCount(0);
@@ -72,6 +74,8 @@ PlaylistTable::PlaylistTable(QWidget* const parent) : QTableWidget(parent) {
 
     EventController::self()
         .append(this,
+                event::ShowCurrentSelectedSongs,
+                event::ShowPlaylistSongs,
                 event::SelectionChanged,
                 event::SongPlayed);
 
@@ -198,38 +202,37 @@ void PlaylistTable::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
 
-    // Event with information that a new album has been selected.
-    case event::DirSelected:
-        if (auto const data = e->data(); !data.empty()) {
-            auto dir = data[0].toString();
-            dir_ = dir;
-            clear_content();
-            new_content_for(std::move(dir));
-            setFocus();
-        }
+    case event::ShowCurrentSelectedSongs:
+        cout << "PlaylistTable::ShowCurrentSelectedSongs\n" << flush;
+
+        break;
+    case event::ShowPlaylistSongs:
+        cout << "PlaylistTable::ShowPlaylistSongs\n" << flush;
         break;
 
     // Event with a request to check/uncheck ALL items.
     case event::CheckingAllSongs:
-        if (auto const data = e->data(); !data.empty()) {
-            auto const state = data[0].toBool() ? Qt::Checked : Qt::Unchecked;
-            auto const n = rowCount();
-            for (auto i = 0; i < n; ++i) {
-                auto const row = item(i, 0);
-                row->setCheckState(state);
-                if (state == Qt::Checked)
-                    Selection::self().insert(row->data(PATH).toString());
-                else
-                    Selection::self().erase(row->data(PATH).toString());
-            }
-        }
+        cout << "PlaylistTable::CheckingAllSongs\n" << flush;
+        // if (auto const data = e->data(); !data.empty()) {
+        //     auto const state = data[0].toBool() ? Qt::Checked : Qt::Unchecked;
+        //     auto const n = rowCount();
+        //     for (auto i = 0; i < n; ++i) {
+        //         auto const row = item(i, 0);
+        //         row->setCheckState(state);
+        //         if (state == Qt::Checked)
+        //             Selection::self().insert(row->data(PATH).toString());
+        //         else
+        //             Selection::self().erase(row->data(PATH).toString());
+        //     }
+        // }
         break;
 
     // Currently playing song.
     case event::SongPlayed:
-        if (auto const data = e->data(); !data.empty())
-            if (auto const it = item_for(data[0].toString()))
-                select(it);
+        cout << "PlaylistTable::SongPlayed\n" << flush;
+        // if (auto const data = e->data(); !data.empty())
+        //     if (auto const it = item_for(data[0].toString()))
+        //         select(it);
         break;
     }
 }
@@ -288,7 +291,6 @@ void PlaylistTable::update_content() noexcept {
         item->setData(PATH, fi.filePath());
         setItem(row++, 0, item);
     });
-
 }
 
 void PlaylistTable::update_parent() const noexcept {

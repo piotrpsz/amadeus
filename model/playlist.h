@@ -6,6 +6,7 @@
 #include <optional>
 #include <format>
 #include <iostream>
+#include <QString>
 
 
 class Playlist {
@@ -31,8 +32,14 @@ public:
     i64 id() const noexcept {
         return id_;
     }
+    qint64 qid() const noexcept {
+        return qint64(id_);
+    }
     std::string const& name() const noexcept {
         return name_;
+    }
+    QString qname() const noexcept {
+        return QString::fromStdString(name_);
     }
     std::string to_str() const noexcept {
         return std::format("[id: {}, name: {}]", id_, name_);

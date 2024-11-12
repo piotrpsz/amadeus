@@ -61,6 +61,8 @@ namespace event {
         SongProgress,
         SongReprogress,
         NewPlaylistAdded,
+        ShowCurrentSelectedSongs,
+        ShowPlaylistSongs,
 
         SongOneShot,            // content table -> controller
         SongShot,               // list table -> controller
