@@ -140,8 +140,15 @@ PlaylistTree::~PlaylistTree() {
 void PlaylistTree::customEvent(QEvent* const event) {
     auto const e = dynamic_cast<Event*>(event);
     switch (int(e->type())) {
-    case event::SelectionChanged:
-        // update_content();
+    case event::NewPlaylistAdded:
+        update_content();
+        if (auto const data = e->data(); !data.empty()) {
+            auto name = data[0].toString();
+            cout << name.toStdString() << '\n' << flush;
+            auto const item = item_for(std::move(name));
+            scrollToItem(item);
+            setCurrentItem(item);
+        }
         break;
     }
 }
@@ -237,8 +244,6 @@ void PlaylistTree::showEvent(QShowEvent* event) {
 
 void PlaylistTree::hideEvent(QHideEvent* event) {
     // cout << "PlaylistTree::hideEvent\n" << flush;
-    // if (auto const item = currentItem())
-    //     saved_item_ = item;
 }
 
 void PlaylistTree::focusInEvent(QFocusEvent*) {
@@ -262,7 +267,7 @@ item_for(QString&& path) const
     QTreeWidgetItemIterator it(playlists_);
     while (*it) {
         QTreeWidgetItem* const item = *it;
-        if (item->data(0, PATH).toString() == path)
+        if (item->text(0) == path)
             return item;
         ++it;
     }

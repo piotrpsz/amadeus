@@ -216,7 +216,10 @@ void PlaylistTable::update_selected() noexcept {
     if (auto const it = saved_.find(current_playlist_id_); it != saved_.end()) {
         select(item_for(std::move(it->second)));
         saved_.erase(it);
+        return;
     }
+    if (rowCount())
+        selectRow(0);
 }
 
 /********************************************************************
