@@ -79,8 +79,9 @@ PlaylistTable::~PlaylistTable() {
  *******************************************************************/
 
 void PlaylistTable::focusOutEvent(QFocusEvent* e) {
-    if (int row = currentRow(); row != -1)
-        saved_ = row;
+    // cout << "PlaylistTable::focusOutEvent\n" << flush;
+    if (auto const item = currentItem())
+        saved_[current_playlist_id_] = item->data(PATH).toString();
 }
 
 /********************************************************************
@@ -90,10 +91,7 @@ void PlaylistTable::focusOutEvent(QFocusEvent* e) {
  *******************************************************************/
 
 void PlaylistTable::focusInEvent(QFocusEvent* e) {
-    if (saved_) {
-        select(item(*saved_, 0));
-        saved_ = {};
-    }
+    // cout << "PlaylistTable::focusInEvent\n" << flush;
 }
 
 /********************************************************************
@@ -103,13 +101,17 @@ void PlaylistTable::focusInEvent(QFocusEvent* e) {
  *******************************************************************/
 
 void PlaylistTable::showEvent(QShowEvent* event) {
-    // update_content();
-    setFocus();
+    // cout << format("PlaylistTable::showEvent saved: {}\n", *saved_) << flush;
+    // if (saved_) {
+    //     select(item(*saved_, 0));
+    //     saved_ = {};
+    // }
 }
 
 void PlaylistTable::hideEvent(QHideEvent* event) {
-    if (int row = currentRow(); row != -1)
-        saved_ = row;
+    // cout << "PlaylistTable::hideEvent\n" << flush;
+    // if (int row = currentRow(); row != -1)
+    //     saved_ = row;
 }
 
 
@@ -167,16 +169,18 @@ void PlaylistTable::customEvent(QEvent* const event) {
 void PlaylistTable::content_for_selections() noexcept {
     clear_content();
 
-    int row{};
-    setRowCount(Selection::self().size());
-    std::ranges::for_each(Selection::self(), [this, &row] (auto const path) {
-        auto const qpath = QString::fromStdString(path);
-        QFileInfo const fi{qpath};
-        auto item = new QTableWidgetItem(fi.fileName());
-        item->setData(PATH, fi.filePath());
-        setItem(row++, 0, item);
-    });
-    selectRow(0);
+    if (!Selection::self().empty()) {
+        int row{};
+        setRowCount(Selection::self().size());
+        std::ranges::for_each(Selection::self(), [this, &row] (auto const& path) {
+            QFileInfo const fi{ QString::fromStdString(path)};
+            auto const item = new QTableWidgetItem(fi.fileName());
+            item->setData(PATH, fi.filePath());
+            setItem(row++, 0, item);
+        });
+        current_playlist_id_ = 0;
+        update_selected();
+    }
 }
 
 /********************************************************************
@@ -192,14 +196,27 @@ void PlaylistTable::content_for_playlist(uint playlist_id) noexcept {
         int row{};
         setRowCount(songs.size());
         std::ranges::for_each(songs, [this, &row] (auto&& song){
-            auto qpath = song.qpath();
-            QFileInfo const fi{qpath};
-            auto item = new QTableWidgetItem(fi.fileName());
+            QFileInfo const fi{song.qpath()};
+            auto const item = new QTableWidgetItem(fi.fileName());
             item->setData(PATH, fi.filePath());
             setItem(row++, 0, item);
         });
+        current_playlist_id_ = playlist_id;
+        update_selected();
     }
-    selectRow(0);
+}
+
+/********************************************************************
+ *                                                                  *
+ *                  u p d a t e _ s e l e c t e d                   *
+ *                                                                  *
+ *******************************************************************/
+
+void PlaylistTable::update_selected() noexcept {
+    if (auto const it = saved_.find(current_playlist_id_); it != saved_.end()) {
+        select(item_for(std::move(it->second)));
+        saved_.erase(it);
+    }
 }
 
 /********************************************************************
@@ -209,9 +226,14 @@ void PlaylistTable::content_for_playlist(uint playlist_id) noexcept {
  *******************************************************************/
 
 void PlaylistTable::select(QTableWidgetItem* const item) {
+    if (item) {
+        scrollToItem(item);
+        setCurrentItem(item);
+        setFocus();
+        return;
+    }
+    selectRow(0);
     setFocus();
-    scrollToItem(item);
-    setCurrentItem(item);
 }
 
 /********************************************************************

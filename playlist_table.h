@@ -28,6 +28,7 @@
 -------------------------------------------------------------------*/
 #include <QTableWidget>
 #include <optional>
+#include <unordered_map>
 
 /*------- forward declarations:
 -------------------------------------------------------------------*/
@@ -45,7 +46,8 @@ class PlaylistTable : public QTableWidget {
     Q_OBJECT
     enum {PATH = Qt::UserRole + 1, DIR};
     QString dir_{};
-    std::optional<int> saved_{};
+    int current_playlist_id_{};
+    std::unordered_map<uint, QString> saved_{};    // we save path
 public:
     PlaylistTable(QWidget* = nullptr);
     ~PlaylistTable();
@@ -64,6 +66,7 @@ private:
 
     void content_for_selections() noexcept;
     void content_for_playlist(uint playlist_id) noexcept;
+    void update_selected() noexcept;
     QTableWidgetItem* item_for(QString&& path) const noexcept;
 
     void focusInEvent(QFocusEvent*) override;
