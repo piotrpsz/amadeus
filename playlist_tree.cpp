@@ -193,61 +193,72 @@ update_playlists()
 
 }
 
+/********************************************************************
+*                                                                   *
+*                         s h o w E v e n t                         *
+*                                                                   *
+********************************************************************/
+
 void PlaylistTree::showEvent(QShowEvent* event) {
-    cout << "PlaylistTree::showEvent\n" << flush;
-    if (auto const item = currentItem()) {
+    // cout << "PlaylistTree::showEvent\n" << flush;
+
+    QTreeWidgetItem* item{};
+
+    if (saved_item_) {
+        item = saved_item_;
+        saved_item_ = nullptr;
+    } else if (auto const current_item = currentItem()) {
+        item = current_item;
+    }
+
+    if (item) {
+        // The 'playlists_' tree item itself does not contain songs
+        // (it contains playlists that contain songs).
         if (item == playlists_)
             return;
+
+        // Display currently selected songs in the song table.
         if (item == current_selections_) {
             EventController::self().send(event::ShowCurrentSelectedSongs);
             return;
         }
+
+        // A playlist has been selected. Display its songs.
         auto const playlist_id = item->data(0, ID).toULongLong();
         EventController::self().send(event::ShowPlaylistSongs, playlist_id);
     }
 }
 
+/********************************************************************
+*                                                                   *
+*                         h i d e E v e n t                         *
+*                                                                   *
+********************************************************************/
+
 void PlaylistTree::hideEvent(QHideEvent* event) {
-    cout << "PlaylistTree::hideEvent\n" << flush;
+    // cout << "PlaylistTree::hideEvent\n" << flush;
+    // if (auto const item = currentItem())
+    //     saved_item_ = item;
 }
 
 void PlaylistTree::focusInEvent(QFocusEvent*) {
+    // cout << "PlaylistTree::focusInEvent\n" << flush;
 }
 
 void PlaylistTree::focusOutEvent(QFocusEvent*) {
+    // cout << "PlaylistTree::focusOutEvent\n" << flush;
 }
 
-/*
-auto PlaylistTree::
-add_items_for(QTreeWidgetItem* const parent)
--> void {
-    auto parent_path = parent->data(0, PATH).toString();
-    QDir const dir{parent_path};
-    auto const content = dir.entryInfoList();
-
-    int const pid = parent->data(0, ID).toInt();
-    int did = pid;
-    for (auto const& fi : content) {
-        if (fi.isDir()) {
-            auto const fname = fi.fileName();
-            if (fname[0] !='.') {
-                auto const item = new QTreeWidgetItem(parent);
-                item->setText(0, fname);
-                if (pid != 0)
-                    item->setCheckState(0, Qt::Unchecked);
-                item->setData(0, PATH, fi.filePath());
-                item->setData(0, PID, pid);
-                item->setData(0, ID, ++did);
-                add_items_for(item);
-            }
-        }
-    }
-}
-*/
+/********************************************************************
+*                                                                   *
+*                         i t e m _ f o r                           *
+*                                                                   *
+********************************************************************/
 
 auto PlaylistTree::
 item_for(QString&& path) const
--> QTreeWidgetItem* {
+-> QTreeWidgetItem*
+{
     QTreeWidgetItemIterator it(playlists_);
     while (*it) {
         QTreeWidgetItem* const item = *it;
