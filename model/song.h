@@ -1,6 +1,7 @@
 #pragma once
 
 #include "../sqlite/row.h"
+#include <QString>
 #include <string>
 #include <vector>
 #include <cstdint>
@@ -33,8 +34,13 @@ public:
     bool insert() noexcept;
     bool update() const noexcept;
 
+    QString qpath() const noexcept {
+        return QString::fromStdString(path_);
+    }
+
     static bool create_table() noexcept;
     static std::optional<Song> with_id(i64 id) noexcept;
+    static std::vector<Song> for_pid(i64 pid) noexcept;
     static std::vector<Song> all_for(i64 pid) noexcept;
     static bool remove(i64 id) noexcept;
 };

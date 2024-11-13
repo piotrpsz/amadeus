@@ -31,7 +31,8 @@
 #include "model/selection.h"
 #include "model/playlist.h"
 #include "line_text_edit.h"
-// #include <iostream>
+#include <iostream>
+#include <format>
 #include <memory>
 #include <QDir>
 #include <QMenu>
@@ -175,8 +176,8 @@ void PlaylistTree::update_content() {
 ********************************************************************/
 
 auto PlaylistTree::
-    update_playlists()
-    -> void
+update_playlists()
+-> void
 {
     // Read data from table 'playlist'.
     auto const playlist_items = Playlist::all();
@@ -190,6 +191,30 @@ auto PlaylistTree::
         item->setData(0, ID, playlist.qid());
     });
 
+}
+
+void PlaylistTree::showEvent(QShowEvent* event) {
+    cout << "PlaylistTree::showEvent\n" << flush;
+    if (auto const item = currentItem()) {
+        if (item == playlists_)
+            return;
+        if (item == current_selections_) {
+            EventController::self().send(event::ShowCurrentSelectedSongs);
+            return;
+        }
+        auto const playlist_id = item->data(0, ID).toULongLong();
+        EventController::self().send(event::ShowPlaylistSongs, playlist_id);
+    }
+}
+
+void PlaylistTree::hideEvent(QHideEvent* event) {
+    cout << "PlaylistTree::hideEvent\n" << flush;
+}
+
+void PlaylistTree::focusInEvent(QFocusEvent*) {
+}
+
+void PlaylistTree::focusOutEvent(QFocusEvent*) {
 }
 
 /*

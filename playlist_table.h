@@ -53,9 +53,8 @@ private:
     void showEvent(QShowEvent*) override;
     void hideEvent(QHideEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
-    void contextMenuEvent(QContextMenuEvent*) override;
+    // void contextMenuEvent(QContextMenuEvent*) override;
     void customEvent(QEvent*) override;
-    void new_content_for(QString&& path);
 
     void clear_content() noexcept {
         // Remove content (and only content, no settings)
@@ -63,10 +62,8 @@ private:
         setRowCount(0);
     }
 
-    void update_content() noexcept;
-    void update_parent() const noexcept;
-    bool are_all_checked() const noexcept;
-    bool are_all_unchecked() const noexcept;
+    void content_for_selections() noexcept;
+    void content_for_playlist(uint playlist_id) noexcept;
     QTableWidgetItem* item_for(QString&& path) const noexcept;
 
     void focusInEvent(QFocusEvent*) override;

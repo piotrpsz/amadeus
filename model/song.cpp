@@ -1,5 +1,6 @@
 #include "song.h"
 #include "../sqlite/sqlite.h"
+using namespace std;
 
 Song::Song(Row&& row) {
     if (auto const f = row["id"])
@@ -41,6 +42,20 @@ auto Song::with_id(i64 id) noexcept
             return Song(result.value()[0]);
     return {};
 }
+
+auto Song::for_pid(i64 pid) noexcept
+-> vector<Song>
+{
+    static auto const query{"SELECT * FROM song WHERE pid=?"s};
+    if (auto result = SQLite::self().select(query, pid)) {
+        std::vector<Song> data{};
+        for (auto&& row : result.value())
+            data.emplace_back(std::move(row));
+        return data;
+    }
+    return {};
+}
+
 
 auto Song::all_for(i64 const pid) noexcept
     -> std::vector<Song> {

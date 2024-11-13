@@ -48,6 +48,7 @@ class PlaylistTree : public QTreeWidget {
     QTreeWidgetItem* playlists_{};
     QTimer* const timer_;
     std::unordered_set<QString> selections_{};
+    QTreeWidgetItem* saved_item_{};
 
 public:
     PlaylistTree(QWidget* = nullptr);
@@ -57,6 +58,11 @@ private:
     void contextMenuEvent(QContextMenuEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
     void customEvent(QEvent*) override;
+    void showEvent(QShowEvent*) override;
+    void hideEvent(QHideEvent*) override;
+    void focusInEvent(QFocusEvent*) override;
+    void focusOutEvent(QFocusEvent*) override;
+
     void update_content();
     void update_playlists();
     // auto add_items_for(QTreeWidgetItem* parent) -> void;
