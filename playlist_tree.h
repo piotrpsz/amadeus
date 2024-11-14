@@ -67,4 +67,5 @@ private:
     void update_playlists();
     // auto add_items_for(QTreeWidgetItem* parent) -> void;
     QTreeWidgetItem* item_for(QString&& path) const;
+    void prepare_selection_to_play() const noexcept;
 };

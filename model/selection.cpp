@@ -24,8 +24,7 @@ bool Selection::save_as_playlist(string&& name) noexcept {
         return {};
     }
 
-    auto const data = to_vector();
-    for (auto const& it : data)
+    for (auto const& it : data_)
         if (!Song(playlist.id(), it).save())
             return {};
 

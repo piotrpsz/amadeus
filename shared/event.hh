@@ -56,6 +56,7 @@ namespace event {
         PlaybackPaused,
         PlaybackRestarted,
         StartSelectedPlayback,
+        StartPlaylistPlayback,
         SongPlayed,             // zaczęto odtwarzać piosenkę.
         SongRange,
         SongProgress,

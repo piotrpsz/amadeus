@@ -28,6 +28,7 @@
 -------------------------------------------------------------------*/
 #include <QWidget>
 #include <QIcon>
+#include <QStringList>
 #include <mutex>
 
 /*------- forward eclarations:
@@ -69,9 +70,9 @@ class ControlBar : public QWidget {
     bool muted_{};
     bool one_shot_{};
     QString song_path_{};
-    std::vector<std::string> songs_{};
+    QStringList songs_{};
     int idx_ = -1;
-    int saved_idx = -1;
+    int saved_idx_ = -1;
     qint64 previous_position_{};
     qint64 previous_duration_{};
     std::mutex mutex_{};

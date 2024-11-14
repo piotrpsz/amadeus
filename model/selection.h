@@ -4,7 +4,8 @@
 #include "../shared/event_controller.hh"
 #include <set>
 #include <string>
-#include <string_view>
+// #include <string_view>
+#include <QStringList>
 #include <mutex>
 #include <QString>
 
@@ -50,14 +51,15 @@ public:
         data_.clear();
         EventController::self().send(event::SelectionChanged);
     }
-    std::vector<std::string> to_vector() {
-        std::lock_guard<std::mutex> lg{mutex_};
 
-        std::vector<std::string> songs{};
-        songs.reserve(data_.size());
-        for (auto const& it : data_)
-            songs.push_back(it);
-        return songs;
+    QStringList to_list() noexcept {
+        std::lock_guard<std::mutex> lg{mutex_};
+        QStringList lista{};
+        lista.reserve(data_.size());
+        std::ranges::for_each(data_, [&lista] (auto const element) {
+            lista << QString::fromStdString(element);
+        });
+        return lista;
     }
 
     bool save_as_playlist(std::string&& name) noexcept;

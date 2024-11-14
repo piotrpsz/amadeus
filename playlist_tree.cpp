@@ -32,7 +32,7 @@
 #include "model/playlist.h"
 #include "line_text_edit.h"
 #include <iostream>
-#include <format>
+// #include <format>
 #include <memory>
 #include <QDir>
 #include <QMenu>
@@ -104,8 +104,11 @@ void PlaylistTree::contextMenuEvent(QContextMenuEvent* const event) {
 
     auto const menu = std::make_shared<QMenu>(this);
     auto const play_action = menu->addAction("Play");
-    connect(play_action, &QAction::triggered, this, [this](auto _) {
-        EventController::self().send(event::StartSelectedPlayback);
+    connect(play_action, &QAction::triggered, this, [this, item](auto _) {
+        if (item == current_selections_)
+            EventController::self().send(event::StartSelectedPlayback);
+        else
+            EventController::self().send(event::StartPlaylistPlayback, item->data(0, ID));
     });
     if (item == current_selections_) {
         auto const create_playlist = menu->addAction("Create a playlist from selected songs");
@@ -274,3 +277,8 @@ item_for(QString&& path) const
     return {};
 }
 
+
+void PlaylistTree::prepare_selection_to_play() const noexcept {
+
+    StartSelectedPlayback:
+}

@@ -1,10 +1,14 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
 #include <pwd.h>
 #include <filesystem>
 #include <iostream>
 #include <format>
+#include <vector>
+#include <string>
+#include <ranges>
 namespace fs = std::filesystem;
 
 class QWidget;
@@ -40,5 +44,17 @@ public:
 
         std::cerr << std::format("{}\n", ec.message());
         return {};
+    }
+
+    static inline QStringList to_qstringlist(std::vector<std::string> data) noexcept {
+        if (data.empty())
+            return {};
+
+        QStringList lista;
+        lista.reserve(data.size());
+        std::ranges::for_each(data, [&lista] (auto&& item) {
+            lista << QString::fromStdString(std::move(item));
+        });
+        return lista;
     }
 };

@@ -29,6 +29,8 @@
 #include "shared/event.hh"
 #include "shared/event_controller.hh"
 #include "model/selection.h"
+#include "model/song.h"
+#include "tool.h"
 #include <QUrl>
 #include <QDir>
 #include <QIcon>
@@ -44,7 +46,7 @@
 #include <span>
 #include <iostream>
 #include <format>
-#include <fmt/core.h>
+
 
 using namespace std;
 
@@ -186,6 +188,7 @@ ControlBar::ControlBar(QWidget* const parent)
         event::SongShot,
         event::SongOneShot,
         event::StartSelectedPlayback,
+        event::StartPlaylistPlayback,
         event::SongReprogress,
         event::SelectionChanged);
 }
@@ -224,7 +227,7 @@ void ControlBar::customEvent(QEvent* const event) {
             lock_guard<mutex> lg{mutex_};
             if (auto idx = song_idx(path); idx != -1) {
                 idx_ = idx;
-                set_song(QString::fromStdString(songs_[idx_]));
+                set_song(songs_[idx_]);
             }
         }
         break;
@@ -236,11 +239,11 @@ void ControlBar::customEvent(QEvent* const event) {
             // A song was selected from the collection.
             if (auto idx = song_idx(path); idx != -1) {
                 idx_ = idx;
-                set_song(QString::fromStdString(songs_[idx_]));
+                set_song(songs_[idx_]);
                 return;
             }
             // Aa song from outside the collection was selected
-            if (played_) saved_idx = idx_;
+            if (played_) saved_idx_ = idx_;
             set_song(path);
         }
         break;
@@ -251,18 +254,34 @@ void ControlBar::customEvent(QEvent* const event) {
                 player_->setPosition(position);
         }
         break;
+    // User would like to start play selections.
     case event::StartSelectedPlayback: {
             lock_guard<mutex> lg{mutex_};
             if (!Selection::self().empty()) {
-                songs_ = Selection::self().to_vector();
-                idx_ = 0;
-                set_song(QString::fromStdString(songs_[idx_]));
+                songs_ = Selection::self().to_list();
+                set_song(songs_[idx_ = 0]);
+            }
+        }
+        break;
+    // User would to start play the playlist.
+        case event::StartPlaylistPlayback: {
+            lock_guard<mutex> lg{mutex_};
+            songs_.clear();
+            if (auto const data = e->data(); !data.empty()) {
+                auto const playlist_id = data[0].toUInt();
+                auto const playlist_songs = Song::all_for(playlist_id);
+                songs_.reserve(playlist_songs.size());
+                std::ranges::for_each(playlist_songs, [this] (auto&& song) {
+                    songs_ << song.qpath();
+                });
+                if (!songs_.isEmpty())
+                    set_song(songs_[idx_ = 0]);
             }
         }
         break;
     case event::SelectionChanged: {
             lock_guard<mutex> lg{mutex_};
-            songs_ = Selection::self().to_vector();
+            songs_ = Selection::self().to_list();
         }
         break;
     }
@@ -277,23 +296,18 @@ void ControlBar::customEvent(QEvent* const event) {
 void ControlBar::play_next() noexcept {
     lock_guard<mutex> lg{mutex_};
 
-    if (songs_.empty()) {
-        cerr << "Songs list is empty\n";
+    if (songs_.empty())
+        return;
+
+    if (saved_idx_ > -1) {
+        idx_ = saved_idx_;
+        set_song(songs_[idx_]);
+        saved_idx_ = -1;
         return;
     }
 
-    if (saved_idx > -1) {
-        cerr << format("Continue for saved index: {}\n", saved_idx);
-        idx_ = saved_idx;
-        set_song(QString::fromStdString(songs_[idx_]));
-        return;
-    }
-
-    if ((idx_ + 1) < songs_.size()) {
-        cerr << format("play next song: {}\n", idx_ + 1);
-        auto path = QString::fromStdString(songs_[++idx_]);
-        set_song(path);
-    }
+    if ((idx_ + 1) < songs_.size())
+        set_song(songs_[++idx_]);
 }
 
 /********************************************************************
@@ -308,10 +322,8 @@ void ControlBar::play_prev() noexcept {
     if (songs_.empty())
         return;
 
-    if((idx_ - 1) >= 0) {
-        auto path = QString::fromStdString(songs_[--idx_]);
-        set_song(path);
-    }
+    if((idx_ - 1) >= 0)
+        set_song(songs_[--idx_]);
 }
 
 /********************************************************************
