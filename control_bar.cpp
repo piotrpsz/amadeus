@@ -253,9 +253,11 @@ void ControlBar::customEvent(QEvent* const event) {
         break;
     case event::StartSelectedPlayback: {
             lock_guard<mutex> lg{mutex_};
-            songs_ = Selection::self().to_vector();
-            idx_ = 0;
-            set_song(QString::fromStdString(songs_[idx_]));
+            if (!Selection::self().empty()) {
+                songs_ = Selection::self().to_vector();
+                idx_ = 0;
+                set_song(QString::fromStdString(songs_[idx_]));
+            }
         }
         break;
     case event::SelectionChanged: {
