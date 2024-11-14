@@ -54,4 +54,5 @@ private:
     void update_content(QString const& path);
     auto add_items_for(QTreeWidgetItem* parent) -> void;
     QTreeWidgetItem* item_for(QString&& path) const;
+    void update_if_checkable() const noexcept;
 };

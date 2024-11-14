@@ -120,6 +120,7 @@ void DirsTree::update_content(QString const& path) {
     root_->setData(0, PATH, path);
 
     add_items_for(root_);
+    update_if_checkable();
     root_->setExpanded(true);
 }
 
@@ -162,3 +163,16 @@ item_for(QString&& path) const
     return {};
 }
 
+void DirsTree::update_if_checkable() const noexcept {
+    if (root_) {
+        auto const n = root_->childCount();
+        if (n > 0) {
+            for (auto i = 0; i < n; ++i) {
+                auto const item = root_->child(i);
+                if (0 == item->childCount())
+                    // if item don't have childs is self checkable,
+                    item->setCheckState(0, Qt::Unchecked);
+            }
+        }
+    }
+}
